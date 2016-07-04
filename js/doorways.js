@@ -90,6 +90,7 @@ doorways_manager_t.prototype.update_stacking=function()
 			++length;
 
 	//Created an ordered array based on zIndex.
+	//  Adds doorways with already existing zIndicies only.
 	//  (Note, offset is to prevent skipped indicies).
 	var ordered_array=[];
 	var offset=0;
@@ -106,16 +107,15 @@ doorways_manager_t.prototype.update_stacking=function()
 			++offset;
 	}
 
-	//Add doorways with already existing zIndicies
+	//Add doorways with no zIndices (new ones or one that was clicked on last).
 	for(var key in this.doorways)
 		if(this.doorways[key]&&this.doorways[key].window.style.zIndex=="")
 			ordered_array[ordered_array.length]=this.doorways[key];
 
-	//Add doorways with no zIndices (new ones or one that was clicked on last)
+	//Set the indicies (ii*2 to account for resizers).
 	for(var ii=0;ii<ordered_array.length;++ii)
 		if(ordered_array[ii])
-			ordered_array[ii].window.style.zIndex=ii;
-
+			ordered_array[ii].window.style.zIndex=ii*2;
 }
 
 //Properties include:
