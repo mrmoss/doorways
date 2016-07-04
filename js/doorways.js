@@ -162,8 +162,7 @@ function doorways_t(manager,id,properties)
 	//Our resize is a wrapper around the resizer onresize callback...
 	resizer_properties.onresize=function(pos,size)
 	{
-		_this.content.style.width=size.w+"px";
-		_this.content.style.height=size.h-_this.top_bar_height+"px";
+		_this.content.style.height=size.h-_this.top_bar_height-resizer_properties.outline+"px";
 		if(_this.onresize)
 			_this.onresize(pos,size);
 		_this.set_active(true);
@@ -184,6 +183,7 @@ function doorways_t(manager,id,properties)
 	this.content=make_div(this.window,
 	{
 		backgroundColor:"white",
+		paddingBottom:resizer_properties.outline+"px",
 		borderBottom:"black solid "+resizer_properties.outline+"px"
 	});
 	this.minimize=make_div(this.top_bar,
