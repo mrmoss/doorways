@@ -1,0 +1,47 @@
+<html>
+	<head>
+		<style>
+			html,head,body,.fill
+			{
+				margin:0px;
+				padding:0px;
+				width:100%;
+				height:100%;
+			}
+		</style>
+		<div class="fill" id="content"></div>
+		<script src="js/doorways.js"></script>
+		<script>
+			var content=document.getElementById("content");
+			var manager=new doorways_manager_t(content);
+			var test=manager.create_doorway("Test",
+			{
+				active:true,
+				min_size:
+				{
+					w:300,
+					h:200
+				}
+			});
+			var input=document.createElement("textarea");
+			input.style.width=input.style.height="100%";
+			input.style.resize="none";
+			test.content.appendChild(input);
+			manager.create_doorway("Test2",
+			{
+				size:
+				{
+					w:100,
+					h:200
+				},
+				min_size:
+				{
+					w:100,
+					h:200
+				}
+			});
+		</script>
+	</head>
+	<body>
+	</body>
+</html>
