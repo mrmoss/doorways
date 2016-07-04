@@ -91,10 +91,11 @@ doorways_manager_t.prototype.update_stacking=function()
 
 	//Created an ordered array based on zIndex.
 	//  Adds doorways with already existing zIndicies only.
-	//  (Note, offset is to prevent skipped indicies).
+	//  Note, offset is to prevent skipped indicies.
+	//  Note, length*2 is to account for layers left for resizers.
 	var ordered_array=[];
 	var offset=0;
-	for(var ii=0;ii<length;++ii)
+	for(var ii=0;ii<length*2;++ii)
 	{
 		var found=false;
 		for(var key in this.doorways)
