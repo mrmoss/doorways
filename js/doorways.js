@@ -77,12 +77,13 @@ function doorways_t(manager,id,properties)
 	var resizer_properties={};
 	if(!properties)
 		properties={};
-	this.active=properties.active;
+	this.active=true;
 	this.active_color=properties.active_color;
 	this.deactive_color=properties.deactive_color;
 	resizer_properties.pos=properties.pos;
 	resizer_properties.size=properties.size;
 	resizer_properties.min_size=properties.min_size;
+	resizer_properties.outline=1;
 	this.onresize=properties.onresize;
 	if(!this.active_color)
 		this.active_color="blue";
@@ -99,18 +100,18 @@ function doorways_t(manager,id,properties)
 	this.window=make_div(this.manager.el,
 	{
 		position:"absolute",
-		border:"black solid 1px"
+		border:"black solid "+resizer_properties.outline+"px"
 	});
 	this.top_bar=make_div(this.window,
 	{
 		height:this.top_bar_height+"px",
 		cursor:"move",
-		borderBottom:"black solid 1px"
+		borderBottom:"black solid "+resizer_properties.outline+"px"
 	});
 	this.content=make_div(this.window,
 	{
 		backgroundColor:"white",
-		borderBottom:"black solid 1px"
+		borderBottom:"black solid "+resizer_properties.outline+"px"
 	});
 	this.minimize=make_div(this.top_bar,
 	{
@@ -256,6 +257,7 @@ function resizer_t(div,window,properties)
 	this.border=6;
 	if(properties)
 	{
+		this.outline=properties.outline;
 		this.pos=properties.pos;
 		this.size=properties.size;
 		this.min_size=properties.min_size;
@@ -279,6 +281,8 @@ function resizer_t(div,window,properties)
 			w:0,
 			h:0
 		};
+	if(!this.outline)
+		this.outline=1;
 	this.resizers=
 	{
 		n:make_div(this.div,
@@ -362,27 +366,27 @@ function resizer_t(div,window,properties)
 				_this.resizers.ne.style.top=
 				_this.resizers.nw.style.top=Math.min(abs_pos.y-_this.border/2,
 					get_num(_this.resizers.s.offsetTop)-_this.border,
-					get_num(_this.resizers.s.offsetTop)-_this.min_size.h);
+					get_num(_this.resizers.s.offsetTop)-_this.min_size.h-_this.border);
 			if(_this.drag_side.indexOf("e")>=0)
 			{
 				_this.resizers.e.style.left=
 				_this.resizers.ne.style.left=
 				_this.resizers.se.style.left=Math.max(abs_pos.x-_this.border/2,
 					get_num(_this.resizers.w.offsetLeft)+_this.border,
-					get_num(_this.resizers.w.offsetLeft)+_this.min_size.w);
+					get_num(_this.resizers.w.offsetLeft)+_this.min_size.w-_this.border-_this.outline*2);
 				}
 			if(_this.drag_side.indexOf("s")>=0)
 				_this.resizers.s.style.top=
 				_this.resizers.se.style.top=
 				_this.resizers.sw.style.top=Math.max(abs_pos.y-_this.border/2,
 					get_num(_this.resizers.n.offsetTop)+_this.border,
-					get_num(_this.resizers.n.offsetTop)+_this.min_size.h);
+					get_num(_this.resizers.n.offsetTop)+_this.min_size.h-_this.border-_this.outline*2);
 			if(_this.drag_side.indexOf("w")>=0)
 				_this.resizers.w.style.left=
 				_this.resizers.nw.style.left=
 				_this.resizers.sw.style.left=Math.min(abs_pos.x-_this.border/2,
 					get_num(_this.resizers.e.offsetLeft)-_this.border,
-					get_num(_this.resizers.e.offsetLeft)-_this.min_size.w);
+					get_num(_this.resizers.e.offsetLeft)-_this.min_size.w-_this.border);
 			_this.size=
 			{
 				w:get_num(_this.resizers.e.offsetLeft)-get_num(_this.resizers.w.offsetLeft)+_this.border,
@@ -402,19 +406,25 @@ function resizer_t(div,window,properties)
 		_this.drag_side=null;
 	};
 	document.addEventListener("mouseup",this.up_func);
-	this.drag_side="se";
-	this.move_func
-	({
-		pageX:this.pos.x+this.size.w,
-		pageY:this.pos.y+this.size.h
-	});
-	this.up_func();
+	this.move(this.pos);
+	this.resize(this.size);
 }
 
 resizer_t.prototype.move=function(pos)
 {
 	this.pos=pos;
 	this.update();
+}
+
+resizer_t.prototype.resize=function(size)
+{
+	this.drag_side="se";
+	this.move_func
+	({
+		pageX:this.pos.x+this.size.w-this.border+this.outline,
+		pageY:this.pos.y+this.size.h-this.border+this.outline
+	});
+	this.up_func();
 }
 
 resizer_t.prototype.update=function()

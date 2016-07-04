@@ -16,11 +16,15 @@
 			var manager=new doorways_manager_t(content);
 			var test=manager.create_doorway("Test",
 			{
-				active:true,
+				size:
+				{
+					w:200,
+					h:100
+				},
 				min_size:
 				{
-					w:300,
-					h:200
+					w:60,
+					h:60
 				}
 			});
 			var input=document.createElement("textarea");
@@ -31,13 +35,18 @@
 			{
 				size:
 				{
-					w:100,
+					w:200,
 					h:200
 				},
 				min_size:
 				{
-					w:100,
+					w:200,
 					h:200
+				},
+				pos:
+				{
+					x:200,
+					y:0
 				}
 			});
 		</script>
