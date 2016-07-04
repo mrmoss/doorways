@@ -80,6 +80,7 @@ doorways_manager_t.prototype.destroy=function()
 	this.div=this.el=this.doorways=null;
 }
 
+//Called when a window changes it's z ordering.
 doorways_manager_t.prototype.update_stacking=function()
 {
 	//Get number of doorways (deleted ones are valid keys in map...).
@@ -95,14 +96,12 @@ doorways_manager_t.prototype.update_stacking=function()
 	for(var ii=0;ii<length;++ii)
 	{
 		var found=false;
-
 		for(var key in this.doorways)
 			if(this.doorways[key]&&this.doorways[key].window.style.zIndex!=""&&this.doorways[key].window.style.zIndex==ii)
 			{
 				found=true;
 				ordered_array[ii-offset]=this.doorways[key];
 			}
-
 		if(!found)
 			++offset;
 	}
@@ -125,8 +124,8 @@ doorways_manager_t.prototype.update_stacking=function()
 //  min_size       {w:INT,h:INT}      Minimum size the doorway can be (200,200).
 //  onresize       function(pos,size) Callback called when window is resized.
 //  outline        INT                Width of outline around doorway (1).
-//  pos            {x:INT,y:INT}      Position of doorway from top left of screen (0,0).
-//  size           {w:INT,h:INT}      Starting size of the doorway (320,240).
+//  pos            {x:INT,y:INT}      Doorway starting position (0,0).
+//  size           {w:INT,h:INT}      Doorway starting size (320,240).
 //  top_bar_height INT                Height of the top bar (32).
 function doorways_t(manager,id,properties)
 {
