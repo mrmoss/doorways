@@ -16,6 +16,8 @@
 				border:0px;
 			}
 		</style>
+		<input type="button" id="hideall" value="Hide/Show"></input>
+		<input type="button" id="hide2" value="Show"></input>
 		<div class="fill" id="content"></div>
 		<script src="js/doorways.js"></script>
 		<script>
@@ -54,6 +56,16 @@
 					y:0
 				}
 			});
+			var hideall=document.getElementById("hideall");
+			hideall.onclick=function()
+			{
+				manager.hide_all(manager.hide_all_state==null);
+			};
+			var hide2=document.getElementById("hide2");
+			hide2.onclick=function()
+			{
+				test.set_minimized(false);
+			};
 		</script>
 	</head>
 	<body>

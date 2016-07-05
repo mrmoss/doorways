@@ -119,6 +119,80 @@ doorways_manager_t.prototype.update_stacking=function()
 			ordered_array[ii].window.style.zIndex=ii*2;
 }
 
+//Hide all/show all windows.
+doorways_manager_t.prototype.hide_all=function(hide)
+{
+	if(hide)
+	{
+		this.hide_all_state=this.save();
+		for(var key in this.doorways)
+			if(this.doorways[key])
+				this.doorways[key].set_minimized(true,false);
+	}
+	else if(this.hide_all_state)
+	{
+		this.load(this.hide_all_state);
+		this.hide_all_state=null;
+	}
+}
+
+//Saves all windows as a JSON object like so:
+//{
+//    doorway_id:
+//    {
+//        pos:{x:INT,y:INT},
+//        size:{x:INT,y:INT},
+//        min_size:{x:INT,y:INT},
+//        active:BOOL,
+//        minimized:BOOL,
+//        z:INT
+//    },
+//    ...
+//}
+doorways_manager_t.prototype.save=function()
+{
+	var data={};
+	for(var key in this.doorways)
+		if(this.doorways[key])
+			data[key]=
+			{
+				pos:this.doorways[key].resizer.pos,
+				z:this.doorways[key].window.style.zIndex,
+				size:this.doorways[key].resizer.size,
+				min_size:this.doorways[key].resizer.min_size,
+				active:this.doorways[key].active,
+				minimized:this.doorways[key].minimized
+			};
+	return data;
+}
+
+//Loads doorways from a saved JSON object.
+//  Format shown in doorways_manager_t.save().
+doorways_manager_t.prototype.load=function(data)
+{
+	//Create doorway and set variables.
+	//  Note: Setting all but active and zIndex, these need to be done after all doorways are created.
+	for(var key in data)
+	{
+		var doorway=this.create_doorway(key);
+		doorway.resizer.set_min_size(data[key].min_size);
+		doorway.resizer.move(data[key].pos);
+		doorway.resizer.resize(data[key].size);
+		doorway.set_minimized(data[key].minimized);
+	}
+
+	//Set Z index.
+	//  Note: This needs to be a separate step from above...
+	for(var key in data)
+		this.doorways[key].window.style.zIndex=data[key].z;
+
+	//Set active window (yes, we need yet another separate iteration).
+	for(var key in data)
+		if(data[key].active)
+			this.doorways[key].set_active(true);
+}
+
+
 //Properties include:
 //  active_color   COLOR              Color of top bar when active (blue).
 //  deactive_color COLOR              Color of top bar when not active (gray).
@@ -140,6 +214,7 @@ function doorways_t(manager,id,properties)
 
 	//First created on top.
 	this.active=true;
+	this.minimized=false;
 	this.active_color=properties.active_color;
 	this.deactive_color=properties.deactive_color;
 	this.onresize=properties.onresize;
@@ -214,6 +289,23 @@ function doorways_t(manager,id,properties)
 		marginLeft:"5px"
 	});
 	this.title.innerHTML=id;
+
+	//Prevent clicking on buttons from dragging windows around.
+	var prevent_move=function(event)
+	{
+		_this.set_active(true);
+		event.stopPropagation();
+	};
+	this.minimize.addEventListener("mousedown",prevent_move);
+	this.minimize.addEventListener("touchstart",prevent_move);
+	this.help.addEventListener("mousedown",prevent_move);
+	this.help.addEventListener("touchstart",prevent_move);
+
+	//Create Button Callbacks
+	this.minimize.addEventListener("click",function(event)
+	{
+		_this.set_minimized(true);
+	});
 
 	//Create resizer.
 	this.resizer=new resizer_t(this.manager.el,this.window,resizer_properties);
@@ -329,6 +421,11 @@ doorways_t.prototype.update=function()
 		this.top_bar.style.backgroundColor=this.deactive_color;
 	}
 
+	if(this.minimized)
+		this.window.style.visibility="hidden";
+	else
+		this.window.style.visibility="visible";
+
 	//Manager needs to reorder stacking
 	this.manager.update_stacking();
 
@@ -339,16 +436,31 @@ doorways_t.prototype.update=function()
 
 //Set the doorway on top.
 //  FIXME: Move the for loop to a function in the manager?
-doorways_t.prototype.set_active=function(active)
+doorways_t.prototype.set_active=function(active,wipe_hide_all)
 {
-	for(var id in this.manager.doorways)
+	if(wipe_hide_all!=false)
+		this.manager.hide_all_state=null;
+	if(active)
 	{
-		this.manager.doorways[id].active=false;
-		if(id!=this.id)
-			this.manager.doorways[id].update();
+		this.minimized=false;
+		for(var id in this.manager.doorways)
+		{
+			this.manager.doorways[id].active=false;
+			if(id!=this.id)
+				this.manager.doorways[id].update();
+		}
 	}
-	this.active=true;
+	this.active=active;
 	this.update();
+}
+
+//Minimize a doorway.
+doorways_t.prototype.set_minimized=function(minimized,wipe_hide_all)
+{
+	if(wipe_hide_all!=false)
+		this.manager.hide_all_state=null;
+	this.minimized=minimized;
+	this.set_active(!this.minimized,wipe_hide_all);
 }
 
 //Creates resizers around the window in the div with properties:
@@ -571,6 +683,12 @@ resizer_t.prototype.resize=function(size)
 		pageY:this.pos.y+this.size.h-this.border+this.outline
 	});
 	this.up_func();
+}
+
+//Sets minimum size...
+resizer_t.prototype.set_min_size=function(size)
+{
+	this.min_size=size;
 }
 
 //Updates resizers not moved and the window passed.
