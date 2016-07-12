@@ -282,6 +282,7 @@ doorways_manager_t.prototype.load=function(data)
 //  pos                 {x:INT,y:INT}      Doorway starting position (0,0).
 //  size                {w:INT,h:INT}      Doorway starting size (320,240).
 //  top_bar_height      INT                Height of the top bar (32).
+//  button_height       INT                Height of the help and minimize buttons(20).
 function doorways_t(manager,id,properties)
 {
 	var _this=this;
@@ -298,6 +299,8 @@ function doorways_t(manager,id,properties)
 	this.active_color=properties.active_color;
 	this.deactive_color=properties.deactive_color;
 	this.onresize=properties.onresize;
+	this.top_bar_height=properties.top_bar_height;
+	this.button_height=properties.button_height;
 
 	//Copy properties to resizer...
 	var resizer_properties={};
@@ -317,6 +320,8 @@ function doorways_t(manager,id,properties)
 		this.deactive_text_color="#999999";
 	if(!this.top_bar_height)
 		this.top_bar_height=32;
+	if(!this.button_height)
+		this.button_height=20;
 
 	//Our resize is a wrapper around the resizer onresize callback...
 	resizer_properties.onresize=function(pos,size)
@@ -348,7 +353,7 @@ function doorways_t(manager,id,properties)
 	this.minimize=make_div(this.top_bar,
 	{
 		lineHeight:this.top_bar_height+"px",
-		width:this.top_bar_height+"px",
+		width:this.button_height+"px",
 		height:this.top_bar_height+"px",
 		cursor:"pointer",
 		float:"right",
@@ -363,7 +368,7 @@ function doorways_t(manager,id,properties)
 	this.help=make_div(this.top_bar,
 	{
 		lineHeight:this.top_bar_height+"px",
-		width:this.top_bar_height+"px",
+		width:this.button_height+"px",
 		height:this.top_bar_height+"px",
 		cursor:"pointer",
 		float:"right",
