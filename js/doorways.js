@@ -13,6 +13,24 @@ function get_num(value)
 	return num;
 }
 
+//Returns the global offset for an element via iterative looping of parents...
+//  http://stackoverflow.com/questions/442404/retrieve-the-position-x-y-of-an-html-element
+function getOffset(el)
+{
+	var offset=
+	{
+		x:0,
+		y:0
+	};
+	while(el)
+	{
+		offset.x+=get_num(el.offsetLeft)-get_num(el.scrollLeft);
+		offset.y+=get_num(el.offsetTop)-get_num(el.scrollTop);
+		el=el.offsetParent;
+	}
+	return offset;
+};
+
 //Make a div function...
 function make_div(div,style,className)
 {
@@ -698,20 +716,25 @@ function resizer_t(div,window,properties)
 		//If dragging a side.
 		if(_this.drag_side)
 		{
+			//Get global offset...
+			var global_offset=getOffset(_this.window);
+			global_offset.x-=get_num(_this.window.offsetLeft);
+			global_offset.y-=get_num(_this.window.offsetTop);
+
 			//Get absolute pos of mouse.
 			var abs_pos=
 			{
-				x:event.pageX,
-				y:event.pageY
+				x:event.pageX-global_offset.x,
+				y:event.pageY-global_offset.y
 			};
 
 			//North resizers.
 			if(_this.drag_side.indexOf("n")>=0)
 				_this.resizers.n.style.top=
 				_this.resizers.ne.style.top=
-				_this.resizers.nw.style.top=Math.min(abs_pos.y-_this.border/2,
+				_this.resizers.nw.style.top=Math.max(Math.min(abs_pos.y-_this.border/2,
 					get_num(_this.resizers.s.offsetTop)-_this.border,
-					get_num(_this.resizers.s.offsetTop)-_this.min_size.h-_this.border);
+					get_num(_this.resizers.s.offsetTop)-_this.min_size.h-_this.border),0);
 
 			//East resizers.
 			if(_this.drag_side.indexOf("e")>=0)
@@ -735,9 +758,9 @@ function resizer_t(div,window,properties)
 			if(_this.drag_side.indexOf("w")>=0)
 				_this.resizers.w.style.left=
 				_this.resizers.nw.style.left=
-				_this.resizers.sw.style.left=Math.min(abs_pos.x-_this.border/2,
+				_this.resizers.sw.style.left=Math.max(Math.min(abs_pos.x-_this.border/2,
 					get_num(_this.resizers.e.offsetLeft)-_this.border,
-					get_num(_this.resizers.e.offsetLeft)-_this.min_size.w-_this.border);
+					get_num(_this.resizers.e.offsetLeft)-_this.min_size.w-_this.border),0);
 
 			//Calculate size.
 			_this.size=
@@ -788,10 +811,13 @@ resizer_t.prototype.move=function(pos)
 resizer_t.prototype.resize=function(size)
 {
 	this.drag_side="se";
+	var global_offset=getOffset(this.window);
+	global_offset.x-=get_num(this.window.offsetLeft);
+	global_offset.y-=get_num(this.window.offsetTop);
 	this.move_func
 	({
-		pageX:this.pos.x+this.size.w-this.border+this.outline,
-		pageY:this.pos.y+this.size.h-this.border+this.outline
+		pageX:this.pos.x+this.size.w-this.border+this.outline+global_offset.x,
+		pageY:this.pos.y+this.size.h-this.border+this.outline+global_offset.y
 	});
 	this.up_func();
 }
