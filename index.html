@@ -55,21 +55,21 @@
 					y:0
 				}
 			});
-			manager.menu.set_icon("img/menu.png");
+			var line_width=2;
+			var blur=line_width/2;
+			var outline_str="drop-shadow("+line_width+"px 0px "+blur+"px white) "+
+				"drop-shadow(0px "+line_width+"px "+blur+"px white) "+
+				"drop-shadow("+(-line_width)+"px 0px "+blur+"px white) "+
+				"drop-shadow(0px "+(-line_width)+"px "+blur+"px white)";
+			manager.menu.set_icon("img/menu.png",
+			{
+				webkitFilter:outline_str,
+				filter:outline_str
+			});
 			manager.menu.set_status("2016/uaf/layla<br>Connected",
 			{
 				color:"lime"
 			});
-			/*var hideall=document.getElementById("hideall");
-			hideall.onclick=function()
-			{
-				manager.hide_all(manager.hide_all_state==null);
-			};
-			var hide2=document.getElementById("hide2");
-			hide2.onclick=function()
-			{
-				test.set_minimized(false);
-			};*/
 		</script>
 	</head>
 	<body>

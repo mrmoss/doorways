@@ -1106,23 +1106,28 @@ doorways_menu_t.prototype.build_button=function(doorway)
 }
 
 //Sets the icon of the menu to the given src.
-doorways_menu_t.prototype.set_icon=function(src)
+doorways_menu_t.prototype.set_icon=function(src,style)
 {
 	this.icon.src=src;
 	if(src)
+	{
 		utility.set_style(this.icon,
 		{
 			paddingTop:"10px",
 			paddingBottom:"10px",
 			display:"block"
 		});
+		utility.set_style(this.icon,style);
+	}
 	else
+	{
 		utility.set_style(this.icon,
 		{
 			paddingTop:"none",
 			paddingBottom:"none",
 			display:"hidden"
 		});
+	}
 }
 
 //Doorways menu button helper function.
