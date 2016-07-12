@@ -22,7 +22,10 @@ function doorways_manager_t(div)
 		width:"0px",
 		height:"0px"
 	});
-	this.menu=new doorways_menu_t(this);
+	this.menu=new doorways_menu_t(this,
+	{
+		width:240
+	});
 }
 
 //Event listeners:
@@ -224,7 +227,8 @@ doorways_manager_t.prototype.load=function(data)
 //  pos                 {x:INT,y:INT}      Doorway starting position (0,0).
 //  size                {w:INT,h:INT}      Doorway starting size (320,240).
 //  top_bar_height      INT                Height of the top bar (32).
-//  button_height       INT                Height of the help and minimize buttons(20).
+//  button_size         INT                Size of the help and minimize buttons(20).
+//  button_spacing      INT                Spacing between buttons(5).
 function doorways_t(manager,id,properties)
 {
 	var _this=this;
@@ -243,6 +247,7 @@ function doorways_t(manager,id,properties)
 	this.onresize=properties.onresize;
 	this.top_bar_height=properties.top_bar_height;
 	this.button_height=properties.button_height;
+	this.button_spacing=properties.button_spacing;
 
 	//Copy properties to resizer...
 	var resizer_properties={};
@@ -262,8 +267,10 @@ function doorways_t(manager,id,properties)
 		this.deactive_text_color="#999999";
 	if(!this.top_bar_height)
 		this.top_bar_height=32;
-	if(!this.button_height)
-		this.button_height=20;
+	if(!this.button_size)
+		this.button_size=20;
+	if(!this.button_spacing)
+		this.button_spacing=5;
 
 	//Our resize is a wrapper around the resizer onresize callback...
 	resizer_properties.onresize=function(pos,size)
@@ -295,11 +302,11 @@ function doorways_t(manager,id,properties)
 	this.minimize=utility.make_div(this.top_bar,
 	{
 		lineHeight:this.top_bar_height+"px",
-		width:this.button_height+"px",
+		width:this.button_size+"px",
 		height:this.top_bar_height+"px",
 		cursor:"pointer",
 		float:"right",
-		marginRight:"5px",
+		marginRight:this.button_spacing+"px",
 		webkitUserSelect:"none",
 		mozUserSelect:"none",
 		msUserSelect:"none",
@@ -310,11 +317,11 @@ function doorways_t(manager,id,properties)
 	this.help=utility.make_div(this.top_bar,
 	{
 		lineHeight:this.top_bar_height+"px",
-		width:this.button_height+"px",
+		width:this.button_size+"px",
 		height:this.top_bar_height+"px",
 		cursor:"pointer",
 		float:"right",
-		marginRight:"5px",
+		marginRight:this.button_spacing+"px",
 		webkitUserSelect:"none",
 		mozUserSelect:"none",
 		msUserSelect:"none",
@@ -326,14 +333,15 @@ function doorways_t(manager,id,properties)
 	{
 		lineHeight:this.top_bar_height+"px",
 		color:"white",
-		width:this.top_bar_height-5+"px",
+		width:"0px",
 		height:this.top_bar_height+"px",
 		cursor:"grab",
-		paddingLeft:"5px",
+		paddingLeft:this.button_spacing+"px",
 		webkitUserSelect:"none",
 		mozUserSelect:"none",
 		msUserSelect:"none",
-		fontFamily:"Sans-serif"
+		fontFamily:"Sans-serif",
+		overflow:"hidden"
 	});
 	this.title.innerHTML=id;
 
@@ -469,6 +477,9 @@ doorways_t.prototype.update=function()
 		this.help.style.color=this.deactive_text_color;
 		this.title.style.color=this.deactive_text_color;
 	}
+
+	this.title.style.width=utility.get_num(this.window.offsetWidth)-
+		this.button_spacing*4-this.button_size*2+"px";
 
 	if(this.minimized)
 		this.window.style.visibility="hidden";
@@ -925,7 +936,9 @@ highlightable_t.prototype.removeEventListener=function(listener,callback)
 }
 
 //Side menu for doorways.
-function doorways_menu_t(manager)
+//  width        INT       Width of menu bar. (128)
+//  handle_width INT       Width of hide/show button. (24).
+function doorways_menu_t(manager,properties)
 {
 	if(!manager)
 		return null;
@@ -936,8 +949,16 @@ function doorways_menu_t(manager)
 	//Style variables...
 	this.button_area_width=128;
 	this.handle_width=24;
-	this.opacity=0.9;
 	this.shown=true;
+
+	//Copy properties...
+	if(properties)
+	{
+		if(properties.width)
+			this.button_area_width=properties.width;
+		if(properties.handle_width)
+			this.handle_width=properties.handle_width;
+	}
 
 	//Side menu creation and callbacks.
 	this.menu=utility.make_div(this.manager.div,
@@ -967,9 +988,8 @@ function doorways_menu_t(manager)
 		left:"0px",
 		height:"100%",
 		width:this.button_area_width+"px",
-		backgroundColor:"black",
-		opacity:0.9
-	});
+		backgroundColor:"black"
+		});
 
 	//Menu icon.
 	this.icon=utility.make_img(this.button_area,"",
@@ -977,6 +997,14 @@ function doorways_menu_t(manager)
 		width:"100px",
 		margin:"auto",
 		display:"hidden"
+	});
+
+	this.status_area=utility.make_div(this.button_area,
+	{
+		width:"100%",
+		height:"auto",
+		fontFamily:"Sans-serif",
+		textAlign:"center"
 	});
 
 	//Side menu hide/show menu creation and callbacks.
@@ -991,7 +1019,6 @@ function doorways_menu_t(manager)
 		enterBackgroundColor:"#999999",
 		leaveColor:"#999999",
 		enterColor:"white",
-		opacity:0.9,
 		display:"table"
 	});
 	this.handle_text=utility.make_div(this.handle.el,
@@ -1047,6 +1074,14 @@ doorways_menu_t.prototype.destroy=function()
 	if(this.handle)
 		this.handle.destroy();
 	this.manager=this.handle=null;
+}
+
+//Set innerHTML of status area...
+doorways_menu_t.prototype.set_status=function(innerHTML,style)
+{
+	if(this.status_area.innerHTML!=innerHTML)
+		this.status_area.innerHTML=innerHTML;
+	utility.set_style(this.status_area,style);
 }
 
 //Clear all buttons made by doorways manager.
@@ -1109,7 +1144,7 @@ function doorways_menu_button_t(div,doorway,width)
 		enterBackgroundColor:"#999999",
 		leaveColor:"#999999",
 		enterColor:"white",
-		opacity:0.9
+		overflow:"hidden"
 	});
 	this.button.addEventListener("click",function()
 	{
