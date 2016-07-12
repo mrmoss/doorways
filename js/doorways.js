@@ -242,35 +242,38 @@ function doorways_t(manager,id,properties)
 	//First created on top.
 	this.active=true;
 	this.minimized=false;
-	this.active_color=properties.active_color;
-	this.deactive_color=properties.deactive_color;
-	this.onresize=properties.onresize;
-	this.top_bar_height=properties.top_bar_height;
-	this.button_height=properties.button_height;
-	this.button_spacing=properties.button_spacing;
+	this.active_color="#999999";
+	this.deactive_color="#222222";
+	this.active_text_color="white";
+	this.deactive_text_color="#999999";
+	this.top_bar_height=32;
+	this.button_size=20;
+	this.button_spacing=5;
+	this.outline=2;
+	this.border_radius=5;
 
 	//Copy properties to resizer...
 	var resizer_properties={};
 	resizer_properties.pos=properties.pos;
 	resizer_properties.size=properties.size;
 	resizer_properties.min_size=properties.min_size;
-	resizer_properties.outline=1;
+	resizer_properties.outline=this.outline
 
 	//Default properties...
-	if(!this.active_color)
-		this.active_color="#999999";
-	if(!this.deactive_color)
-		this.deactive_color="#222222";
-	if(!this.active_text_color)
-		this.active_text_color="white";
-	if(!this.deactive_text_color)
-		this.deactive_text_color="#999999";
-	if(!this.top_bar_height)
-		this.top_bar_height=32;
-	if(!this.button_size)
-		this.button_size=20;
-	if(!this.button_spacing)
-		this.button_spacing=5;
+	if(resizer_properties.active_color)
+		this.active_color=resizer_properties.active_color;
+	if(resizer_properties.deactive_color)
+		this.deactive_color=resizer_properties.deactive_color;
+	if(resizer_properties.active_text_color)
+		this.active_text_color=resizer_properties.active_text_color;
+	if(resizer_properties.deactive_text_color)
+		this.deactive_text_color=resizer_properties.deactive_text_color;
+	if(resizer_properties.top_bar_height)
+		this.top_bar_height=resizer_properties.top_bar_height;
+	if(resizer_properties.button_size)
+		this.button_size=resizer_properties.button_size;
+	if(resizer_properties.button_spacing)
+		this.button_spacing=resizer_properties.button_spacing;
 
 	//Our resize is a wrapper around the resizer onresize callback...
 	resizer_properties.onresize=function(pos,size)
@@ -285,19 +288,19 @@ function doorways_t(manager,id,properties)
 	this.window=utility.make_div(this.manager.el,
 	{
 		position:"absolute",
-		border:"black solid "+resizer_properties.outline+"px"
+		border:"black solid "+this.outline+"px",
+		borderRadius:this.border_radius+"px",
+		overflow:"hidden"
 	});
 	this.top_bar=utility.make_div(this.window,
 	{
 		height:this.top_bar_height+"px",
 		cursor:"move",
-		borderBottom:"black solid "+resizer_properties.outline+"px"
+		borderBottom:"black solid "+this.outline+"px"
 	});
 	this.content=utility.make_div(this.window,
 	{
-		backgroundColor:"white",
-		paddingBottom:resizer_properties.outline+"px",
-		borderBottom:"black solid "+resizer_properties.outline+"px"
+		backgroundColor:"white"
 	});
 	this.minimize=utility.make_div(this.top_bar,
 	{
@@ -331,6 +334,8 @@ function doorways_t(manager,id,properties)
 	this.help.innerHTML="?";
 	this.title=utility.make_div(this.top_bar,
 	{
+		position:"absolute",
+		top:"0px",
 		lineHeight:this.top_bar_height+"px",
 		color:"white",
 		width:"0px",
@@ -536,7 +541,7 @@ function resizer_t(div,window,properties)
 		return null;
 	this.div=div;
 	this.window=window;
-	this.opacity=0;
+	this.opacity=0;  //DEBUGGING HELPER
 	this.border=6;
 
 	//Copy properties...
@@ -679,7 +684,7 @@ function resizer_t(div,window,properties)
 				_this.resizers.se.style.left=Math.max(abs_pos.x-_this.border/2,
 					utility.get_num(_this.resizers.w.offsetLeft)+_this.border,
 					utility.get_num(_this.resizers.w.offsetLeft)+_this.min_size.w-
-						_this.border-_this.outline*2);
+						_this.border);
 
 			//South resizers.
 			if(_this.drag_side.indexOf("s")>=0)
@@ -688,7 +693,7 @@ function resizer_t(div,window,properties)
 				_this.resizers.sw.style.top=Math.max(abs_pos.y-_this.border/2,
 					utility.get_num(_this.resizers.n.offsetTop)+_this.border,
 					utility.get_num(_this.resizers.n.offsetTop)+_this.min_size.h-
-						_this.border-_this.outline*2);
+						_this.border);
 
 			//West resizers.
 			if(_this.drag_side.indexOf("w")>=0)
@@ -703,9 +708,9 @@ function resizer_t(div,window,properties)
 			_this.size=
 			{
 				w:utility.get_num(_this.resizers.e.offsetLeft)-
-					utility.get_num(_this.resizers.w.offsetLeft)+_this.border,
+					utility.get_num(_this.resizers.w.offsetLeft)+_this.border-_this.outline*2,
 				h:utility.get_num(_this.resizers.s.offsetTop)-
-					utility.get_num(_this.resizers.n.offsetTop)+_this.border
+					utility.get_num(_this.resizers.n.offsetTop)+_this.border-_this.outline*2
 			};
 
 			//Calculate position.
@@ -783,13 +788,13 @@ resizer_t.prototype.update=function()
 			if(this.resizers[key].direction.indexOf("e")>=0)
 				utility.set_style(this.resizers[key],
 				{
-					left:this.pos.x+this.size.w-this.border+"px",
+					left:this.pos.x+this.size.w-this.border+this.outline*2+"px",
 					width:this.border+"px"
 				});
 			if(this.resizers[key].direction.indexOf("s")>=0)
 				utility.set_style(this.resizers[key],
 				{
-					top:this.pos.y+this.size.h-this.border+"px",
+					top:this.pos.y+this.size.h-this.border+this.outline*2+"px",
 					height:this.border+"px"
 				});
 			if(this.resizers[key].direction.indexOf("w")>=0)
@@ -801,13 +806,13 @@ resizer_t.prototype.update=function()
 			if(this.resizers[key].direction=="n"||this.resizers[key].direction=="s")
 				utility.set_style(this.resizers[key],
 				{
-					width:this.size.w-this.border*2+"px",
+					width:this.size.w-this.border*2+this.outline*2+"px",
 					left:this.pos.x+this.border+"px"
 				});
 			if(this.resizers[key].direction=="e"||this.resizers[key].direction=="w")
 				utility.set_style(this.resizers[key],
 				{
-					height:this.size.h-this.border*2+"px",
+					height:this.size.h-this.border*2+this.outline*2+"px",
 					top:this.pos.y+this.border+"px"
 				});
 		}
