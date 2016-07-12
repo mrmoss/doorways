@@ -19,8 +19,8 @@ function doorways_manager_t(div)
 	this.el=utility.make_div(div,
 	{
 		position:"absolute",
-		width:"100%",
-		height:"100%"
+		width:"0px",
+		height:"0px"
 	});
 	this.menu=new doorways_menu_t(this);
 }
