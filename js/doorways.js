@@ -3,49 +3,6 @@
 //Mike Moss
 //07/12/2016
 
-//To get things like style.width and .offsetHeight.
-//  (Aka things which are sometimes null and have "px" at the end).
-function get_num(value)
-{
-	var num=parseFloat(value);
-	if(!num)
-		num=0;
-	return num;
-}
-
-//Returns the global offset for an element via iterative looping of parents...
-//  http://stackoverflow.com/questions/442404/retrieve-the-position-x-y-of-an-html-element
-function getOffset(el)
-{
-	var offset=
-	{
-		x:0,
-		y:0
-	};
-	while(el)
-	{
-		offset.x+=get_num(el.offsetLeft)-get_num(el.scrollLeft);
-		offset.y+=get_num(el.offsetTop)-get_num(el.scrollTop);
-		el=el.offsetParent;
-	}
-	return offset;
-};
-
-//Make a div function...
-function make_div(div,style,className)
-{
-	var el=document.createElement("div");
-	if(className)
-		el.className=className;
-	el.style.width=el.style.height="100%";
-	if(style)
-		for(var key in style)
-			el.style[key]=style[key];
-	if(div)
-		div.appendChild(el);
-	return el;
-}
-
 //Stores doorways and provides an interface for deleting and creating them.
 function doorways_manager_t(div)
 {
@@ -59,7 +16,7 @@ function doorways_manager_t(div)
 		remove:[],
 		stackchange:[]
 	};
-	this.el=make_div(div,
+	this.el=utility.make_div(div,
 	{
 		position:"absolute",
 		width:"100%",
@@ -68,53 +25,21 @@ function doorways_manager_t(div)
 	this.menu=new doorways_menu_t(this);
 }
 
-//  Event listeners:
-//    stackchange(top_z) - Called when windows are reordered, top_z is an
-//                           INT containing the zIndex of the top most window.
-//    add(id)            - Called when a doorway with id is added.
-//    remove(id)         - Called when a doorway with id is removed.
-//  Note, throws error on invalid listener.
-//  Note, listeners will only be added ONCE.
+//Event listeners:
+//  stackchange(top_z) - Called when windows are reordered, top_z is an
+//                         INT containing the zIndex of the top most window.
+//  add(id)            - Called when a doorway with id is added.
+//  remove(id)         - Called when a doorway with id is removed.
 doorways_manager_t.prototype.addEventListener=function(listener,callback)
 {
-	//Check listener...
-	var found=false;
-	for(var key in this.event_listeners)
-		if(key==listener)
-		{
-			found=true;
-			break;
-		}
-	if(!found)
-		throw "Unknown event listener \""+listener+"\".";
-
-	//Check and add callback...
-	var index=this.event_listeners[listener].indexOf(callback);
-	if(index<0)
-		this.event_listeners[listener].push(callback);
+	utility.setEventListener(this,listener,callback);
 }
 
-//Event listeners: see .addEventListener() for details.
-//  Note, throws error on invalid listener.
-//  Note, throws error on invalid callback for listener.
+//Event listeners:
+//  See .addEventListener() for details.
 doorways_manager_t.prototype.removeEventListener=function(listener,callback)
 {
-	//Check listener...
-	var found=false;
-	for(var key in this.event_listeners)
-		if(key==listener)
-		{
-			found=true;
-			break;
-		}
-	if(!found)
-		throw "Unknown event listener \""+listener+"\".";
-
-	//Check and remove callback...
-	var index=this.event_listeners[listener].indexOf(callback);
-	if(index<0)
-		throw "Invalid callback for \""+listener+"\".";
-	this.event_listeners[listener].splice(index,1);
+	utility.unsetEventListener(this,listener,callback);
 }
 
 
@@ -351,24 +276,24 @@ function doorways_t(manager,id,properties)
 	};
 
 	//Make the parts of the doorway...
-	this.window=make_div(this.manager.el,
+	this.window=utility.make_div(this.manager.el,
 	{
 		position:"absolute",
 		border:"black solid "+resizer_properties.outline+"px"
 	});
-	this.top_bar=make_div(this.window,
+	this.top_bar=utility.make_div(this.window,
 	{
 		height:this.top_bar_height+"px",
 		cursor:"move",
 		borderBottom:"black solid "+resizer_properties.outline+"px"
 	});
-	this.content=make_div(this.window,
+	this.content=utility.make_div(this.window,
 	{
 		backgroundColor:"white",
 		paddingBottom:resizer_properties.outline+"px",
 		borderBottom:"black solid "+resizer_properties.outline+"px"
 	});
-	this.minimize=make_div(this.top_bar,
+	this.minimize=utility.make_div(this.top_bar,
 	{
 		lineHeight:this.top_bar_height+"px",
 		width:this.button_height+"px",
@@ -383,7 +308,7 @@ function doorways_t(manager,id,properties)
 		textAlign:"center"
 	});
 	this.minimize.innerHTML="_";
-	this.help=make_div(this.top_bar,
+	this.help=utility.make_div(this.top_bar,
 	{
 		lineHeight:this.top_bar_height+"px",
 		width:this.button_height+"px",
@@ -398,7 +323,7 @@ function doorways_t(manager,id,properties)
 		textAlign:"center"
 	});
 	this.help.innerHTML="?";
-	this.title=make_div(this.top_bar,
+	this.title=utility.make_div(this.top_bar,
 	{
 		lineHeight:this.top_bar_height+"px",
 		color:"white",
@@ -446,8 +371,8 @@ function doorways_t(manager,id,properties)
 	{
 		event.preventDefault();
 		_this.old_pos={x:event.pageX,y:event.pageY};
-		_this.old_pos.x-=get_num(_this.window.offsetLeft);
-		_this.old_pos.y-=get_num(_this.window.offsetTop);
+		_this.old_pos.x-=utility.get_num(_this.window.offsetLeft);
+		_this.old_pos.y-=utility.get_num(_this.window.offsetTop);
 		_this.dragging=true;
 	};
 	this.top_bar.addEventListener("mousedown",this.down_func);
@@ -639,56 +564,56 @@ function resizer_t(div,window,properties)
 	//Create resizers (n, e, s, e, ne, etc...)
 	this.resizers=
 	{
-		n:make_div(this.div,
+		n:utility.make_div(this.div,
 		{
 			backgroundColor:"yellow",
 			cursor:"ns-resize",
 			position:"absolute",
 			opacity:this.opacity
 		}),
-		e:make_div(this.div,
+		e:utility.make_div(this.div,
 		{
 			backgroundColor:"yellow",
 			cursor:"ew-resize",
 			position:"absolute",
 			opacity:this.opacity
 		}),
-		s:make_div(this.div,
+		s:utility.make_div(this.div,
 		{
 			backgroundColor:"yellow",
 			cursor:"ns-resize",
 			position:"absolute",
 			opacity:this.opacity
 		}),
-		w:make_div(this.div,
+		w:utility.make_div(this.div,
 		{
 			backgroundColor:"yellow",
 			cursor:"ew-resize",
 			position:"absolute",
 			opacity:this.opacity
 		}),
-		ne:make_div(this.div,
+		ne:utility.make_div(this.div,
 		{
 			backgroundColor:"purple",
 			cursor:"nesw-resize",
 			position:"absolute",
 			opacity:this.opacity
 		}),
-		se:make_div(this.div,
+		se:utility.make_div(this.div,
 		{
 			backgroundColor:"purple",
 			cursor:"nwse-resize",
 			position:"absolute",
 			opacity:this.opacity
 		}),
-		sw:make_div(this.div,
+		sw:utility.make_div(this.div,
 		{
 			backgroundColor:"purple",
 			cursor:"nesw-resize",
 			position:"absolute",
 			opacity:this.opacity
 		}),
-		nw:make_div(this.div,
+		nw:utility.make_div(this.div,
 		{
 			backgroundColor:"purple",
 			cursor:"nwse-resize",
@@ -717,9 +642,9 @@ function resizer_t(div,window,properties)
 		if(_this.drag_side)
 		{
 			//Get global offset...
-			var global_offset=getOffset(_this.window);
-			global_offset.x-=get_num(_this.window.offsetLeft);
-			global_offset.y-=get_num(_this.window.offsetTop);
+			var global_offset=utility.get_offset(_this.window);
+			global_offset.x-=utility.get_num(_this.window.offsetLeft);
+			global_offset.y-=utility.get_num(_this.window.offsetTop);
 
 			//Get absolute pos of mouse.
 			var abs_pos=
@@ -733,47 +658,51 @@ function resizer_t(div,window,properties)
 				_this.resizers.n.style.top=
 				_this.resizers.ne.style.top=
 				_this.resizers.nw.style.top=Math.max(Math.min(abs_pos.y-_this.border/2,
-					get_num(_this.resizers.s.offsetTop)-_this.border,
-					get_num(_this.resizers.s.offsetTop)-_this.min_size.h-_this.border),0);
+					utility.get_num(_this.resizers.s.offsetTop)-_this.border,
+					utility.get_num(_this.resizers.s.offsetTop)-_this.min_size.h-
+						_this.border),0);
 
 			//East resizers.
 			if(_this.drag_side.indexOf("e")>=0)
-			{
 				_this.resizers.e.style.left=
 				_this.resizers.ne.style.left=
 				_this.resizers.se.style.left=Math.max(abs_pos.x-_this.border/2,
-					get_num(_this.resizers.w.offsetLeft)+_this.border,
-					get_num(_this.resizers.w.offsetLeft)+_this.min_size.w-_this.border-_this.outline*2);
-				}
+					utility.get_num(_this.resizers.w.offsetLeft)+_this.border,
+					utility.get_num(_this.resizers.w.offsetLeft)+_this.min_size.w-
+						_this.border-_this.outline*2);
 
 			//South resizers.
 			if(_this.drag_side.indexOf("s")>=0)
 				_this.resizers.s.style.top=
 				_this.resizers.se.style.top=
 				_this.resizers.sw.style.top=Math.max(abs_pos.y-_this.border/2,
-					get_num(_this.resizers.n.offsetTop)+_this.border,
-					get_num(_this.resizers.n.offsetTop)+_this.min_size.h-_this.border-_this.outline*2);
+					utility.get_num(_this.resizers.n.offsetTop)+_this.border,
+					utility.get_num(_this.resizers.n.offsetTop)+_this.min_size.h-
+						_this.border-_this.outline*2);
 
 			//West resizers.
 			if(_this.drag_side.indexOf("w")>=0)
 				_this.resizers.w.style.left=
 				_this.resizers.nw.style.left=
 				_this.resizers.sw.style.left=Math.max(Math.min(abs_pos.x-_this.border/2,
-					get_num(_this.resizers.e.offsetLeft)-_this.border,
-					get_num(_this.resizers.e.offsetLeft)-_this.min_size.w-_this.border),0);
+					utility.get_num(_this.resizers.e.offsetLeft)-_this.border,
+					utility.get_num(_this.resizers.e.offsetLeft)-_this.min_size.w-
+						_this.border),0);
 
 			//Calculate size.
 			_this.size=
 			{
-				w:get_num(_this.resizers.e.offsetLeft)-get_num(_this.resizers.w.offsetLeft)+_this.border,
-				h:get_num(_this.resizers.s.offsetTop)-get_num(_this.resizers.n.offsetTop)+_this.border
+				w:utility.get_num(_this.resizers.e.offsetLeft)-
+					utility.get_num(_this.resizers.w.offsetLeft)+_this.border,
+				h:utility.get_num(_this.resizers.s.offsetTop)-
+					utility.get_num(_this.resizers.n.offsetTop)+_this.border
 			};
 
 			//Calculate position.
 			_this.pos=
 			{
-				x:get_num(_this.resizers.w.offsetLeft),
-				y:get_num(_this.resizers.n.offsetTop)
+				x:utility.get_num(_this.resizers.w.offsetLeft),
+				y:utility.get_num(_this.resizers.n.offsetTop)
 			};
 
 			//Updae window.
@@ -811,9 +740,9 @@ resizer_t.prototype.move=function(pos)
 resizer_t.prototype.resize=function(size)
 {
 	this.drag_side="se";
-	var global_offset=getOffset(this.window);
-	global_offset.x-=get_num(this.window.offsetLeft);
-	global_offset.y-=get_num(this.window.offsetTop);
+	var global_offset=utility.get_offset(this.window);
+	global_offset.x-=utility.get_num(this.window.offsetLeft);
+	global_offset.y-=utility.get_num(this.window.offsetTop);
 	this.move_func
 	({
 		pageX:this.pos.x+this.size.w-this.border+this.outline+global_offset.x,
@@ -930,7 +859,7 @@ function highlightable_t(div,style)
 	{
 		click:[]
 	};
-	this.el=make_div(this.div,style);
+	this.el=utility.make_div(this.div,style);
 	if(!style.cursor)
 		this.el.style.cursor="pointer";
 	this.el.addEventListener("mouseenter",function(){_this.highlight();});
@@ -973,50 +902,18 @@ highlightable_t.prototype.unhighlight=function()
 		this.el.style.color=this.style.leaveColor;
 }
 
-//  Event listeners:
-//    click() - Called when highlightable button is clicked.
-//  Note, throws error on invalid listener.
-//  Note, listeners will only be added ONCE.
+//Event listeners:
+//  click() - Called when highlightable button is clicked.
 highlightable_t.prototype.addEventListener=function(listener,callback)
 {
-	//Check listener...
-	var found=false;
-	for(var key in this.event_listeners)
-		if(key==listener)
-		{
-			found=true;
-			break;
-		}
-	if(!found)
-		throw "Unknown event listener \""+listener+"\".";
-
-	//Check and add callback...
-	var index=this.event_listeners[listener].indexOf(callback);
-	if(index<0)
-		this.event_listeners[listener].push(callback);
+	utility.setEventListener(this,listener,callback);
 }
 
-//Event listeners: see .addEventListener() for details.
-//  Note, throws error on invalid listener.
-//  Note, throws error on invalid callback for listener.
+//Event listeners:
+//  See .addEventListener() for details.
 highlightable_t.prototype.removeEventListener=function(listener,callback)
 {
-	//Check listener...
-	var found=false;
-	for(var key in this.event_listeners)
-		if(key==listener)
-		{
-			found=true;
-			break;
-		}
-	if(!found)
-		throw "Unknown event listener \""+listener+"\".";
-
-	//Check and remove callback...
-	var index=this.event_listeners[listener].indexOf(callback);
-	if(index<0)
-		throw "Invalid callback for \""+listener+"\".";
-	this.event_listeners[listener].splice(index,1);
+	utility.unsetEventListener(this,listener,callback);
 }
 
 //Side menu for doorways.
@@ -1035,7 +932,7 @@ function doorways_menu_t(manager)
 	this.shown=true;
 
 	//Side menu creation and callbacks.
-	this.menu=make_div(this.manager.div,
+	this.menu=utility.make_div(this.manager.div,
 	{
 		position:"absolute",
 		top:"0px",
@@ -1054,7 +951,7 @@ function doorways_menu_t(manager)
 	});
 
 	//Buttons div creation and callbacks.
-	this.button_area=make_div(this.menu,
+	this.button_area=utility.make_div(this.menu,
 	{
 		position:"absolute",
 		top:"0px",
@@ -1080,7 +977,7 @@ function doorways_menu_t(manager)
 		opacity:0.9,
 		display:"table"
 	});
-	this.handle_text=make_div(this.handle.el,
+	this.handle_text=utility.make_div(this.handle.el,
 	{
 		fontFamily:"Sans-serif",
 		textAlign:"center",
