@@ -1,7 +1,7 @@
 //doorways.js
 //Version 2
 //Mike Moss
-//07/04/2016
+//07/12/2016
 
 //To get things like style.width and .offsetHeight.
 //  (Aka things which are sometimes null and have "px" at the end).
@@ -34,16 +34,83 @@ function doorways_manager_t(div)
 	if(!div)
 		return null;
 	this.div=div;
-	this.el=make_div(div);
+	this.el=make_div(div,
+	{
+		width:"100%",
+		height:"100%"
+	});
 	this.doorways={};
+	this.event_listeners=
+	{
+		add:[],
+		remove:[],
+		stackchange:[]
+	};
 }
+
+//  Event listeners:
+//    stackchange(top_z) - Called when windows are reordered, top_z is an
+//                           INT containing the zIndex of the top most window.
+//    add(id)            - Called when a doorway with id is added.
+//    remove(id)         - Called when a doorway with id is removed.
+//  Note, throws error on invalid listener.
+//  Note, listeners will only be added ONCE.
+doorways_manager_t.prototype.addEventListener=function(listener,callback)
+{
+	//Check listener...
+	var found=false;
+	for(var key in this.event_listeners)
+		if(key==listener)
+		{
+			found=true;
+			break;
+		}
+	if(!found)
+		throw "Unknown event listener \""+listener+"\".";
+
+	//Check and add callback...
+	var index=this.event_listeners[listener].indexOf(callback);
+	if(index<0)
+		this.event_listeners[listener].push(callback);
+}
+
+//Event listeners: see .addEventListener() for details.
+//  Note, throws error on invalid listener.
+//  Note, throws error on invalid callback for listener.
+doorways_manager_t.prototype.removeEventListener=function(listener,callback)
+{
+	//Check listener...
+	var found=false;
+	for(var key in this.event_listeners)
+		if(key==listener)
+		{
+			found=true;
+			break;
+		}
+	if(!found)
+		throw "Unknown event listener \""+listener+"\".";
+
+	//Check and remove callback...
+	var index=this.event_listeners[listener].indexOf(callback);
+	if(index<0)
+		throw "Invalid callback for \""+listener+"\".";
+	this.event_listeners[listener].splice(index,1);
+}
+
 
 //Creates a doorway, makes it the most active doorway, and returns a ref to it.
 //  Properties are listed in doorways_t constructor.
 doorways_manager_t.prototype.create_doorway=function(id,properties)
 {
 	if(!this.doorways[id])
+	{
 		this.doorways[id]=new doorways_t(this,id,properties);
+
+		//Event listeners...
+		for(var key in this.event_listeners.addremove)
+			this.event_listeners.add[key](id);
+	}
+
 	this.update_stacking();
 	return this.doorways[id];
 }
@@ -58,6 +125,10 @@ doorways_manager_t.prototype.remove_doorway=function(id)
 			this.doorways[id].destroy();
 			this.doorways[id]=null;
 			this.update_stacking();
+
+			//Event listeners...
+			for(var key in this.event_listeners.addremove)
+				this.event_listeners.remove[key](id);
 		}
 	}
 	catch(error)
@@ -99,7 +170,8 @@ doorways_manager_t.prototype.update_stacking=function()
 	{
 		var found=false;
 		for(var key in this.doorways)
-			if(this.doorways[key]&&this.doorways[key].window.style.zIndex!=""&&this.doorways[key].window.style.zIndex==ii)
+			if(this.doorways[key]&&this.doorways[key].window.style.zIndex!=""&&
+				this.doorways[key].window.style.zIndex==ii)
 			{
 				found=true;
 				ordered_array[ii-offset]=this.doorways[key];
@@ -117,6 +189,10 @@ doorways_manager_t.prototype.update_stacking=function()
 	for(var ii=0;ii<ordered_array.length;++ii)
 		if(ordered_array[ii])
 			ordered_array[ii].window.style.zIndex=ii*2;
+
+	//Event listeners...
+	for(var key in this.event_listeners.stackchange)
+		this.event_listeners.stackchange[key](ordered_array.length*2+1);
 }
 
 //Hide all/show all windows.
@@ -286,7 +362,11 @@ function doorways_t(manager,id,properties)
 		width:this.top_bar_height+"px",
 		height:this.top_bar_height+"px",
 		cursor:"grab",
-		marginLeft:"5px"
+		marginLeft:"5px",
+		webkitUserSelect:"none",
+		mozUserSelect:"none",
+		msUserSelect:"none",
+		fontFamily:"Sans-serif"
 	});
 	this.title.innerHTML=id;
 
@@ -771,4 +851,282 @@ resizer_t.prototype.destroy=function()
 		this.resizers[key]=null;
 	this.div=this.window=this.resizers=null;
 
+}
+
+//Helper class that makes a highlightable div.
+//  Special CSS:
+//    enterOpacity          Opacity when mouse enters.
+//    leaveOpacity          Opacity when mouse leaves.
+//    enterColor            Color when mouse enters.
+//    leaveColor            Color when mouse leaves.
+//    enterBackgroundColor  Background color when mouse enters.
+//    leaveBackgroundColor  Background color when mouse leaves.
+//  See .addEventListener() for listeners.
+function highlightable_t(div,style)
+{
+	if(!div)
+		return null;
+	this.div=div;
+	var _this=this;
+	this.style=style;
+	this.event_listeners=
+	{
+		click:[]
+	};
+	this.el=make_div(this.div,style);
+	if(!style.cursor)
+		this.el.style.cursor="pointer";
+	this.el.addEventListener("mouseenter",function(){_this.highlight();});
+	this.el.addEventListener("mouseleave",function(){_this.unhighlight();});
+	this.el.addEventListener("click",function()
+	{
+		for(var key in _this.event_listeners.click)
+			_this.event_listeners.click[key]();
+	});
+	this.unhighlight();
+}
+
+//Cleanup function...
+highlightable_t.prototype.destroy=function()
+{
+	if(this.div&&this.el)
+		this.div.removeChild(this.el);
+	this.div=this.el=null;
+}
+
+//Highlight function sets colors and opacities to enter(if passed in).
+highlightable_t.prototype.highlight=function()
+{
+	if(this.style.enterOpacity>=0)
+		this.el.style.opacity=this.style.enterOpacity;
+	if(this.style.enterBackgroundColor)
+		this.el.style.backgroundColor=this.style.enterBackgroundColor;
+	if(this.style.enterColor)
+		this.el.style.color=this.style.enterColor;
+}
+
+//Unhighlight function sets colors and opacities to leave (if passed in).
+highlightable_t.prototype.unhighlight=function()
+{
+	if(this.style.leaveOpacity>=0)
+		this.el.style.opacity=this.style.leaveOpacity;
+	if(this.style.leaveBackgroundColor)
+		this.el.style.backgroundColor=this.style.leaveBackgroundColor;
+	if(this.style.leaveColor)
+		this.el.style.color=this.style.leaveColor;
+}
+
+//  Event listeners:
+//    click() - Called when highlightable button is clicked.
+//  Note, throws error on invalid listener.
+//  Note, listeners will only be added ONCE.
+highlightable_t.prototype.addEventListener=function(listener,callback)
+{
+	//Check listener...
+	var found=false;
+	for(var key in this.event_listeners)
+		if(key==listener)
+		{
+			found=true;
+			break;
+		}
+	if(!found)
+		throw "Unknown event listener \""+listener+"\".";
+
+	//Check and add callback...
+	var index=this.event_listeners[listener].indexOf(callback);
+	if(index<0)
+		this.event_listeners[listener].push(callback);
+}
+
+//Event listeners: see .addEventListener() for details.
+//  Note, throws error on invalid listener.
+//  Note, throws error on invalid callback for listener.
+highlightable_t.prototype.removeEventListener=function(listener,callback)
+{
+	//Check listener...
+	var found=false;
+	for(var key in this.event_listeners)
+		if(key==listener)
+		{
+			found=true;
+			break;
+		}
+	if(!found)
+		throw "Unknown event listener \""+listener+"\".";
+
+	//Check and remove callback...
+	var index=this.event_listeners[listener].indexOf(callback);
+	if(index<0)
+		throw "Invalid callback for \""+listener+"\".";
+	this.event_listeners[listener].splice(index,1);
+}
+
+//Side menu for doorways.
+function doorways_menu_t(manager)
+{
+	if(!manager)
+		return null;
+	var _this=this;
+	this.manager=manager;
+	this.buttons=[];
+
+	//Style variables...
+	this.button_area_width=128;
+	this.handle_width=24;
+	this.opacity=0.9;
+	this.shown=true;
+
+	//Side menu creation and callbacks.
+	this.menu=make_div(this.manager.el,
+	{
+		position:"absolute",
+		top:"0px",
+		left:"0px",
+		height:"100%",
+		width:this.button_area_width+this.handle_width+"px"
+	});
+
+	//Set menu on top of all other windows...(little hacky...).
+	this.manager.addEventListener("stackchange",function(z_top)
+	{
+		var offset=999;
+		_this.menu.style.zIndex=z_top+offset;
+		_this.button_area.style.zIndex=z_top+offset*2;
+		_this.handle.el.style.zIndex=z_top+offset*3;
+	});
+
+	//Buttons div creation and callbacks.
+	this.button_area=make_div(this.menu,
+	{
+		position:"absolute",
+		top:"0px",
+		left:"0px",
+		height:"100%",
+		width:this.button_area_width+"px",
+		backgroundColor:"black",
+		opacity:0.9
+	});
+
+	//Side menu hide/show menu creation and callbacks.
+	this.handle=new highlightable_t(this.menu,
+	{
+		position:"absolute",
+		top:"0px",
+		right:"0px",
+		height:"100%",
+		width:this.handle_width+"px",
+		leaveBackgroundColor:"black",
+		enterBackgroundColor:"#999999",
+		leaveColor:"#999999",
+		enterColor:"white",
+		opacity:0.9,
+		display:"table"
+	});
+	this.handle_text=make_div(this.handle.el,
+	{
+		fontFamily:"Sans-serif",
+		textAlign:"center",
+		display:"table-cell",
+		verticalAlign:"middle"
+	});
+	this.handle_text.innerHTML="<";
+
+	//Click to show/hide.
+	this.handle.addEventListener("click",function()
+	{
+		if(_this.shown)
+		{
+			_this.menu.style.width=_this.handle_width+"px";
+			_this.button_area.style.visibility="hidden";
+			_this.handle_text.innerHTML=">";
+		}
+		else
+		{
+			_this.menu.style.width=_this.button_area_width+_this.handle_width+"px";
+			_this.button_area.style.visibility="visible";
+			_this.handle_text.innerHTML="<";
+		}
+		_this.shown=!_this.shown;
+		_this.handle.unhighlight();
+	});
+
+	//Callbacks to update menu...
+	var update=function()
+	{
+		_this.clear_buttons();
+		for(var key in _this.manager.doorways)
+			_this.build_button(_this.manager.doorways[key]);
+	};
+	this.manager.addEventListener("add",update);
+	this.manager.addEventListener("remove",update);
+	update();
+}
+
+//Cleanup function...
+doorways_menu_t.prototype.destroy=function()
+{
+	if(this.manager&&this.manager.el)
+		this.manager.el.removeChild(this.menu);
+	if(this.handle)
+		this.handle.destroy();
+	this.manager=this.handle=null;
+}
+
+//Clear all buttons made by doorways manager.
+doorways_menu_t.prototype.clear_buttons=function()
+{
+	for(var key in this.buttons)
+		this.buttons.destroy();
+	this.buttons=[];
+}
+
+//Add a new doorways button (buttons are used to hide/show doorways).
+doorways_menu_t.prototype.build_button=function(doorway)
+{
+	this.buttons.push(new doorways_menu_button_t(this.button_area,doorway,
+		this.button_area_width));
+}
+
+//Doorways menu button helper function.
+function doorways_menu_button_t(div,doorway,width)
+{
+	if(!div||!doorway)
+		return null;
+	var _this=this;
+	this.div=div;
+	this.doorway=doorway;
+	this.padding=5;
+	this.width=width;
+	this.height=32;
+	this.button=new highlightable_t(this.div,
+	{
+		height:this.height+"px",
+		width:this.width-this.padding+"px",
+		lineHeight:this.height+"px",
+		paddingLeft:this.padding+"px",
+		webkitUserSelect:"none",
+		mozUserSelect:"none",
+		msUserSelect:"none",
+		fontFamily:"Sans-serif",
+		leaveBackgroundColor:"black",
+		enterBackgroundColor:"#999999",
+		leaveColor:"#999999",
+		enterColor:"white",
+		opacity:0.9
+	});
+	this.button.addEventListener("click",function()
+	{
+		_this.doorway.set_active(true);
+	});
+	this.text=document.createTextNode(this.doorway.id);
+	this.button.el.appendChild(this.text);
+}
+
+//Cleanup function...
+doorways_menu_button_t.prototype.destroy=function()
+{
+	if(this.button)
+		this.button.destroy();
+	this.div=this.doorway=this.button=null;
 }
