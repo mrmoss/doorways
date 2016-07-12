@@ -24,7 +24,8 @@ function doorways_manager_t(div)
 	});
 	this.menu=new doorways_menu_t(this,
 	{
-		width:240
+		width:240,
+		border_radius:4
 	});
 }
 
@@ -227,8 +228,9 @@ doorways_manager_t.prototype.load=function(data)
 //  pos                 {x:INT,y:INT}      Doorway starting position (0,0).
 //  size                {w:INT,h:INT}      Doorway starting size (320,240).
 //  top_bar_height      INT                Height of the top bar (32).
-//  button_size         INT                Size of the help and minimize buttons(20).
-//  button_spacing      INT                Spacing between buttons(5).
+//  button_size         INT                Size of the help and minimize buttons (20).
+//  button_spacing      INT                Spacing between buttons (5).
+//  border_radius       INT                Roundness of doorways (5).
 function doorways_t(manager,id,properties)
 {
 	var _this=this;
@@ -257,23 +259,25 @@ function doorways_t(manager,id,properties)
 	resizer_properties.pos=properties.pos;
 	resizer_properties.size=properties.size;
 	resizer_properties.min_size=properties.min_size;
-	resizer_properties.outline=this.outline
+	resizer_properties.outline=this.outline;
 
 	//Default properties...
-	if(resizer_properties.active_color)
-		this.active_color=resizer_properties.active_color;
-	if(resizer_properties.deactive_color)
-		this.deactive_color=resizer_properties.deactive_color;
-	if(resizer_properties.active_text_color)
-		this.active_text_color=resizer_properties.active_text_color;
-	if(resizer_properties.deactive_text_color)
-		this.deactive_text_color=resizer_properties.deactive_text_color;
-	if(resizer_properties.top_bar_height)
-		this.top_bar_height=resizer_properties.top_bar_height;
-	if(resizer_properties.button_size)
-		this.button_size=resizer_properties.button_size;
-	if(resizer_properties.button_spacing)
-		this.button_spacing=resizer_properties.button_spacing;
+	if(properties.active_color)
+		this.active_color=properties.active_color;
+	if(properties.deactive_color)
+		this.deactive_color=properties.deactive_color;
+	if(properties.active_text_color)
+		this.active_text_color=properties.active_text_color;
+	if(properties.deactive_text_color)
+		this.deactive_text_color=properties.deactive_text_color;
+	if(properties.top_bar_height)
+		this.top_bar_height=properties.top_bar_height;
+	if(properties.button_size)
+		this.button_size=properties.button_size;
+	if(properties.button_spacing)
+		this.button_spacing=properties.button_spacing;
+	if(properties.border_radius)
+		this.border_radius=properties.border_radius;
 
 	//Our resize is a wrapper around the resizer onresize callback...
 	resizer_properties.onresize=function(pos,size)
@@ -818,13 +822,20 @@ resizer_t.prototype.update=function()
 				});
 		}
 
+	//There seems to be a border SOMEWHERE causing a 1px difference in size...
+	var size_offset=
+	{
+		w:1,
+		h:1
+	};
+
 	//Set window pos and size.
 	utility.set_style(this.window,
 	{
 		left:this.pos.x+"px",
 		top:this.pos.y+"px",
-		width:this.size.w+"px",
-		height:this.size.h+"px"
+		width:this.size.w+size_offset.w+"px",
+		height:this.size.h+size_offset.h+"px"
 	});
 
 	//User callback call.
@@ -942,8 +953,9 @@ highlightable_t.prototype.removeEventListener=function(listener,callback)
 }
 
 //Side menu for doorways.
-//  width        INT       Width of menu bar. (128)
-//  handle_width INT       Width of hide/show button. (24).
+//  width         INT       Width of menu bar. (128)
+//  handle_width  INT       Width of hide/show button. (24)
+//  border_radius INT       Determines how round the menu is (5).
 function doorways_menu_t(manager,properties)
 {
 	if(!manager)
@@ -955,6 +967,7 @@ function doorways_menu_t(manager,properties)
 	//Style variables...
 	this.button_area_width=128;
 	this.handle_width=24;
+	this.border_radius=5;
 	this.shown=true;
 
 	//Copy properties...
@@ -964,6 +977,8 @@ function doorways_menu_t(manager,properties)
 			this.button_area_width=properties.width;
 		if(properties.handle_width)
 			this.handle_width=properties.handle_width;
+		if(properties.border_radius)
+			this.border_radius=properties.border_radius;
 	}
 
 	//Side menu creation and callbacks.
@@ -1025,7 +1040,8 @@ function doorways_menu_t(manager,properties)
 		enterBackgroundColor:"#999999",
 		leaveColor:"#999999",
 		enterColor:"white",
-		display:"table"
+		display:"table",
+		borderRadius:"0px "+this.border_radius+"px "+this.border_radius+"px 0px"
 	});
 	this.handle_text=utility.make_div(this.handle.el,
 	{
@@ -1162,7 +1178,6 @@ function doorways_menu_button_t(div,doorway,width)
 	{
 		_this.doorway.set_active(true);
 	});
-	console.log(this.doorway.id);
 	this.text=document.createTextNode(this.doorway.id);
 	this.button.el.appendChild(this.text);
 }
