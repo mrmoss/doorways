@@ -346,9 +346,10 @@ function doorways_t(manager,id,properties)
 		mozUserSelect:"none",
 		msUserSelect:"none",
 		fontFamily:"Sans-serif",
-		overflow:"hidden"
+		overflow:"hidden",
+		whiteSpace:"nowrap"
 	});
-	this.title.innerHTML=id;
+	this.title.appendChild(document.createTextNode(id));
 
 	//Prevent clicking on buttons from dragging windows around.
 	var prevent_move=function(event)
@@ -1081,7 +1082,7 @@ doorways_menu_t.prototype.destroy=function()
 	this.manager=this.handle=null;
 }
 
-//Set innerHTML of status area...
+//Set innerHTML of status area... (this might be a terrible idea...)
 doorways_menu_t.prototype.set_status=function(innerHTML,style)
 {
 	if(this.status_area.innerHTML!=innerHTML)
@@ -1149,12 +1150,14 @@ function doorways_menu_button_t(div,doorway,width)
 		enterBackgroundColor:"#999999",
 		leaveColor:"#999999",
 		enterColor:"white",
-		overflow:"hidden"
+		overflow:"hidden",
+		whiteSpace:"nowrap"
 	});
 	this.button.addEventListener("click",function()
 	{
 		_this.doorway.set_active(true);
 	});
+	console.log(this.doorway.id);
 	this.text=document.createTextNode(this.doorway.id);
 	this.button.el.appendChild(this.text);
 }
