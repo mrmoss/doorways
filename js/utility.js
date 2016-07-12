@@ -35,6 +35,14 @@ utility_t.prototype.get_offset=function(el)
 	return offset;
 };
 
+//Pass in an object containing css, apply said css to el.
+utility_t.prototype.set_style=function(el,style)
+{
+	if(style)
+		for(var key in style)
+			el.style[key]=style[key];
+}
+
 //Make a div function...
 utility_t.prototype.make_div=function(div,style,className)
 {
@@ -42,13 +50,26 @@ utility_t.prototype.make_div=function(div,style,className)
 	if(className)
 		el.className=className;
 	el.style.width=el.style.height="100%";
-	if(style)
-		for(var key in style)
-			el.style[key]=style[key];
+	this.set_style(el,style);
 	if(div)
 		div.appendChild(el);
 	return el;
 }
+
+//Make an image function...
+utility_t.prototype.make_img=function(div,src,style,className)
+{
+	var el=document.createElement("img");
+	if(src)
+		el.src=src;
+	if(className)
+		el.className=className;
+	this.set_style(el,style);
+	if(div)
+		div.appendChild(el);
+	return el;
+}
+
 
 //Set an event listener for an object.
 //  Note, if el is not a DOM object, you need to make a map of arrays called event_listeners:

@@ -42,7 +42,6 @@ doorways_manager_t.prototype.removeEventListener=function(listener,callback)
 	utility.unsetEventListener(this,listener,callback);
 }
 
-
 //Creates a doorway, makes it the most active doorway, and returns a ref to it.
 //  Properties are listed in doorways_t constructor.
 doorways_manager_t.prototype.create_doorway=function(id,properties)
@@ -765,42 +764,51 @@ resizer_t.prototype.update=function()
 		if(this.resizers[key].direction)
 		{
 			if(this.resizers[key].direction.indexOf("n")>=0)
-			{
-				this.resizers[key].style.top=this.pos.y+"px";
-				this.resizers[key].style.height=this.border+"px";
-			}
+				utility.set_style(this.resizers[key],
+				{
+					top:this.pos.y+"px",
+					height:this.border+"px"
+				});
 			if(this.resizers[key].direction.indexOf("e")>=0)
-			{
-				this.resizers[key].style.left=this.pos.x+this.size.w-this.border+"px";
-				this.resizers[key].style.width=this.border+"px";
-			}
+				utility.set_style(this.resizers[key],
+				{
+					left:this.pos.x+this.size.w-this.border+"px",
+					width:this.border+"px"
+				});
 			if(this.resizers[key].direction.indexOf("s")>=0)
-			{
-				this.resizers[key].style.top=this.pos.y+this.size.h-this.border+"px";
-				this.resizers[key].style.height=this.border+"px";
-			}
+				utility.set_style(this.resizers[key],
+				{
+					top:this.pos.y+this.size.h-this.border+"px",
+					height:this.border+"px"
+				});
 			if(this.resizers[key].direction.indexOf("w")>=0)
-			{
-				this.resizers[key].style.left=this.pos.x+"px";
-				this.resizers[key].style.width=this.border+"px";
-			}
+				utility.set_style(this.resizers[key],
+				{
+					left:this.pos.x+"px",
+					width:this.border+"px"
+				});
 			if(this.resizers[key].direction=="n"||this.resizers[key].direction=="s")
-			{
-				this.resizers[key].style.width=this.size.w-this.border*2+"px";
-				this.resizers[key].style.left=this.pos.x+this.border+"px";
-			}
+				utility.set_style(this.resizers[key],
+				{
+					width:this.size.w-this.border*2+"px",
+					left:this.pos.x+this.border+"px"
+				});
 			if(this.resizers[key].direction=="e"||this.resizers[key].direction=="w")
-			{
-				this.resizers[key].style.height=this.size.h-this.border*2+"px";
-				this.resizers[key].style.top=this.pos.y+this.border+"px";
-			}
+				utility.set_style(this.resizers[key],
+				{
+					height:this.size.h-this.border*2+"px",
+					top:this.pos.y+this.border+"px"
+				});
 		}
 
 	//Set window pos and size.
-	this.window.style.left=this.pos.x+"px";
-	this.window.style.top=this.pos.y+"px";
-	this.window.style.width=this.size.w+"px";
-	this.window.style.height=this.size.h+"px";
+	utility.set_style(this.window,
+	{
+		left:this.pos.x+"px",
+		top:this.pos.y+"px",
+		width:this.size.w+"px",
+		height:this.size.h+"px"
+	});
 
 	//User callback call.
 	if(this.onresize)
@@ -948,6 +956,7 @@ function doorways_menu_t(manager)
 		_this.menu.style.zIndex=z_top+offset;
 		_this.button_area.style.zIndex=z_top+offset*2;
 		_this.handle.el.style.zIndex=z_top+offset*3;
+		_this.icon.style.zIndex=z_top+offset*3;
 	});
 
 	//Buttons div creation and callbacks.
@@ -960,6 +969,14 @@ function doorways_menu_t(manager)
 		width:this.button_area_width+"px",
 		backgroundColor:"black",
 		opacity:0.9
+	});
+
+	//Menu icon.
+	this.icon=utility.make_img(this.button_area,"",
+	{
+		width:"100px",
+		margin:"auto",
+		display:"hidden"
 	});
 
 	//Side menu hide/show menu creation and callbacks.
@@ -1045,6 +1062,26 @@ doorways_menu_t.prototype.build_button=function(doorway)
 {
 	this.buttons.push(new doorways_menu_button_t(this.button_area,doorway,
 		this.button_area_width));
+}
+
+//Sets the icon of the menu to the given src.
+doorways_menu_t.prototype.set_icon=function(src)
+{
+	this.icon.src=src;
+	if(src)
+		utility.set_style(this.icon,
+		{
+			paddingTop:"10px",
+			paddingBottom:"10px",
+			display:"block"
+		});
+	else
+		utility.set_style(this.icon,
+		{
+			paddingTop:"none",
+			paddingBottom:"none",
+			display:"hidden"
+		});
 }
 
 //Doorways menu button helper function.
