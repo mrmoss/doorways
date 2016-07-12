@@ -260,7 +260,7 @@ function doorways_t(manager,id,properties)
 	if(!this.active_color)
 		this.active_color="#999999";
 	if(!this.deactive_color)
-		this.deactive_color="black";
+		this.deactive_color="#222222";
 	if(!this.active_text_color)
 		this.active_text_color="white";
 	if(!this.deactive_text_color)
@@ -988,7 +988,7 @@ function doorways_menu_t(manager,properties)
 		left:"0px",
 		height:"100%",
 		width:this.button_area_width+"px",
-		backgroundColor:"black"
+		backgroundColor:"#222222"
 		});
 
 	//Menu icon.
@@ -1015,7 +1015,7 @@ function doorways_menu_t(manager,properties)
 		right:"0px",
 		height:"100%",
 		width:this.handle_width+"px",
-		leaveBackgroundColor:"black",
+		leaveBackgroundColor:"#222222",
 		enterBackgroundColor:"#999999",
 		leaveColor:"#999999",
 		enterColor:"white",
@@ -1140,7 +1140,7 @@ function doorways_menu_button_t(div,doorway,width)
 		mozUserSelect:"none",
 		msUserSelect:"none",
 		fontFamily:"Sans-serif",
-		leaveBackgroundColor:"black",
+		leaveBackgroundColor:"#222222",
 		enterBackgroundColor:"#999999",
 		leaveColor:"#999999",
 		enterColor:"white",
