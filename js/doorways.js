@@ -251,8 +251,28 @@ function doorways_t(manager,id,properties)
 	this.top_bar_height=32;
 	this.button_size=20;
 	this.button_spacing=5;
-	this.outline=2;
+	this.outline=3;
 	this.border_radius=5;
+
+	//Default properties...
+	if(properties.active_color!=null)
+		this.active_color=properties.active_color;
+	if(properties.deactive_color!=null)
+		this.deactive_color=properties.deactive_color;
+	if(properties.active_text_color!=null)
+		this.active_text_color=properties.active_text_color;
+	if(properties.deactive_text_color!=null)
+		this.deactive_text_color=properties.deactive_text_color;
+	if(properties.outline!=null)
+		this.outline=properties.outline;
+	if(properties.top_bar_height!=null)
+		this.top_bar_height=properties.top_bar_height;
+	if(properties.button_size!=null)
+		this.button_size=properties.button_size;
+	if(properties.button_spacing!=null)
+		this.button_spacing=properties.button_spacing;
+	if(properties.border_radius!=null)
+		this.border_radius=properties.border_radius;
 
 	//Copy properties to resizer...
 	var resizer_properties={};
@@ -260,24 +280,6 @@ function doorways_t(manager,id,properties)
 	resizer_properties.size=properties.size;
 	resizer_properties.min_size=properties.min_size;
 	resizer_properties.outline=this.outline;
-
-	//Default properties...
-	if(properties.active_color)
-		this.active_color=properties.active_color;
-	if(properties.deactive_color)
-		this.deactive_color=properties.deactive_color;
-	if(properties.active_text_color)
-		this.active_text_color=properties.active_text_color;
-	if(properties.deactive_text_color)
-		this.deactive_text_color=properties.deactive_text_color;
-	if(properties.top_bar_height)
-		this.top_bar_height=properties.top_bar_height;
-	if(properties.button_size)
-		this.button_size=properties.button_size;
-	if(properties.button_spacing)
-		this.button_spacing=properties.button_spacing;
-	if(properties.border_radius)
-		this.border_radius=properties.border_radius;
 
 	//Our resize is a wrapper around the resizer onresize callback...
 	resizer_properties.onresize=function(pos,size)
@@ -547,7 +549,7 @@ function resizer_t(div,window,properties)
 	this.div=div;
 	this.window=window;
 	this.opacity=0;  //DEBUGGING HELPER
-	this.border=6;
+	this.border=10;
 
 	//Copy properties...
 	if(properties)
@@ -579,7 +581,7 @@ function resizer_t(div,window,properties)
 			h:200
 		};
 	if(!this.outline)
-		this.outline=1;
+		this.outline=0;
 
 	//Create resizers (n, e, s, e, ne, etc...)
 	this.resizers=
@@ -713,9 +715,9 @@ function resizer_t(div,window,properties)
 			_this.size=
 			{
 				w:utility.get_num(_this.resizers.e.offsetLeft)-
-					utility.get_num(_this.resizers.w.offsetLeft)+_this.border-_this.outline*2,
+					utility.get_num(_this.resizers.w.offsetLeft)+_this.border,
 				h:utility.get_num(_this.resizers.s.offsetTop)-
-					utility.get_num(_this.resizers.n.offsetTop)+_this.border-_this.outline*2
+					utility.get_num(_this.resizers.n.offsetTop)+_this.border
 			};
 
 			//Calculate position.
@@ -765,8 +767,8 @@ resizer_t.prototype.resize=function(size)
 	global_offset.y-=utility.get_num(this.window.offsetTop);
 	this.move_func
 	({
-		pageX:this.pos.x+this.size.w-this.border+this.outline+global_offset.x,
-		pageY:this.pos.y+this.size.h-this.border+this.outline+global_offset.y
+		pageX:this.pos.x+this.size.w-this.border/2+global_offset.x,
+		pageY:this.pos.y+this.size.h-this.border/2+global_offset.y
 	});
 	this.up_func();
 }
@@ -793,13 +795,13 @@ resizer_t.prototype.update=function()
 			if(this.resizers[key].direction.indexOf("e")>=0)
 				utility.set_style(this.resizers[key],
 				{
-					left:this.pos.x+this.size.w-this.border+this.outline*2+"px",
+					left:this.pos.x+this.size.w-this.border+"px",
 					width:this.border+"px"
 				});
 			if(this.resizers[key].direction.indexOf("s")>=0)
 				utility.set_style(this.resizers[key],
 				{
-					top:this.pos.y+this.size.h-this.border+this.outline*2+"px",
+					top:this.pos.y+this.size.h-this.border+"px",
 					height:this.border+"px"
 				});
 			if(this.resizers[key].direction.indexOf("w")>=0)
@@ -811,31 +813,24 @@ resizer_t.prototype.update=function()
 			if(this.resizers[key].direction=="n"||this.resizers[key].direction=="s")
 				utility.set_style(this.resizers[key],
 				{
-					width:this.size.w-this.border*2+this.outline*2+"px",
+					width:this.size.w-this.border*2+"px",
 					left:this.pos.x+this.border+"px"
 				});
 			if(this.resizers[key].direction=="e"||this.resizers[key].direction=="w")
 				utility.set_style(this.resizers[key],
 				{
-					height:this.size.h-this.border*2+this.outline*2+"px",
+					height:this.size.h-this.border*2+"px",
 					top:this.pos.y+this.border+"px"
 				});
 		}
-
-	//There seems to be a border SOMEWHERE causing a 1px difference in size...
-	var size_offset=
-	{
-		w:1,
-		h:1
-	};
 
 	//Set window pos and size.
 	utility.set_style(this.window,
 	{
 		left:this.pos.x+"px",
 		top:this.pos.y+"px",
-		width:this.size.w+size_offset.w+"px",
-		height:this.size.h+size_offset.h+"px"
+		width:this.size.w-this.outline*2+"px",
+		height:this.size.h-this.outline*2+"px"
 	});
 
 	//User callback call.
@@ -968,6 +963,7 @@ function doorways_menu_t(manager,properties)
 	this.button_area_width=128;
 	this.handle_width=24;
 	this.border_radius=5;
+	this.outline=2;
 	this.shown=true;
 
 	//Copy properties...
