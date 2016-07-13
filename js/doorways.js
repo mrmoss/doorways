@@ -388,8 +388,11 @@ function doorways_t(manager,id,properties)
 	//Drag start.
 	this.down_func=function(event)
 	{
+		var mouse=event;
+		if(event.touches&&event.touches.length>0)
+			mouse=event.touches[0];
 		event.preventDefault();
-		_this.old_pos={x:event.pageX,y:event.pageY};
+		_this.old_pos={x:mouse.pageX,y:mouse.pageY};
 		_this.old_pos.x-=utility.get_num(_this.window.offsetLeft);
 		_this.old_pos.y-=utility.get_num(_this.window.offsetTop);
 		_this.dragging=true;
@@ -400,6 +403,10 @@ function doorways_t(manager,id,properties)
 	//Dragging.
 	this.move_func=function(event)
 	{
+		var mouse=event;
+		if(event.touches&&event.touches.length>0)
+			mouse=event.touches[0];
+
 		if(_this.resizer.drag_side)
 			_this.dragging=false;
 
@@ -407,8 +414,8 @@ function doorways_t(manager,id,properties)
 		{
 			var new_pos=
 			{
-				x:event.pageX-_this.old_pos.x,
-				y:event.pageY-_this.old_pos.y
+				x:mouse.pageX-_this.old_pos.x,
+				y:mouse.pageY-_this.old_pos.y
 			};
 			_this.resizer.move(new_pos);
 		}
@@ -497,6 +504,7 @@ doorways_t.prototype.update=function()
 		this.window.style.visibility="hidden";
 	else
 		this.window.style.visibility="visible";
+	this.resizer.hide(this.minimized);
 
 	//Manager needs to reorder stacking
 	this.manager.update_stacking();
@@ -663,6 +671,10 @@ function resizer_t(div,window,properties)
 		//If dragging a side.
 		if(_this.drag_side)
 		{
+			var mouse=event;
+			if(event.touches&&event.touches.length>0)
+				mouse=event.touches[0];
+
 			//Get global offset...
 			var global_offset=utility.get_offset(_this.window);
 			global_offset.x-=utility.get_num(_this.window.offsetLeft);
@@ -671,8 +683,8 @@ function resizer_t(div,window,properties)
 			//Get absolute pos of mouse.
 			var abs_pos=
 			{
-				x:event.pageX-global_offset.x,
-				y:event.pageY-global_offset.y
+				x:mouse.pageX-global_offset.x,
+				y:mouse.pageY-global_offset.y
 			};
 
 			//North resizers.
@@ -745,6 +757,15 @@ function resizer_t(div,window,properties)
 	//Initial move and resize.
 	this.move(this.pos);
 	this.resize(this.size);
+}
+
+resizer_t.prototype.hide=function(hide)
+{
+	for(var key in this.resizers)
+		if(hide)
+			this.resizers[key].style.visibility="hidden";
+		else
+			this.resizers[key].style.visibility="visible";
 }
 
 //Updates position...
