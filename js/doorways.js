@@ -681,7 +681,7 @@ function resizer_t(div,window,properties)
 				_this.resizers.ne.style.top=
 				_this.resizers.nw.style.top=Math.max(Math.min(abs_pos.y-_this.border/2,
 					utility.get_num(_this.resizers.s.offsetTop)-_this.border,
-					utility.get_num(_this.resizers.s.offsetTop)-_this.min_size.h-
+					utility.get_num(_this.resizers.s.offsetTop)-_this.min_size.h+
 						_this.border),0);
 
 			//East resizers.
@@ -708,7 +708,7 @@ function resizer_t(div,window,properties)
 				_this.resizers.nw.style.left=
 				_this.resizers.sw.style.left=Math.max(Math.min(abs_pos.x-_this.border/2,
 					utility.get_num(_this.resizers.e.offsetLeft)-_this.border,
-					utility.get_num(_this.resizers.e.offsetLeft)-_this.min_size.w-
+					utility.get_num(_this.resizers.e.offsetLeft)-_this.min_size.w+
 						_this.border),0);
 
 			//Calculate size.
