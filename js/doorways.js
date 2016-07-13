@@ -393,8 +393,8 @@ function doorways_t(manager,id,properties)
 			mouse=event.touches[0];
 		event.preventDefault();
 		_this.old_pos={x:mouse.pageX,y:mouse.pageY};
-		_this.old_pos.x-=utility.get_num(_this.window.offsetLeft);
-		_this.old_pos.y-=utility.get_num(_this.window.offsetTop);
+		_this.old_pos.x-=utility.get_num(_this.window.offsetLeft)+window.pageXOffset;
+		_this.old_pos.y-=utility.get_num(_this.window.offsetTop)+window.pageYOffset;
 		_this.dragging=true;
 	};
 	this.top_bar.addEventListener("mousedown",this.down_func);
@@ -414,8 +414,8 @@ function doorways_t(manager,id,properties)
 		{
 			var new_pos=
 			{
-				x:mouse.pageX-_this.old_pos.x,
-				y:mouse.pageY-_this.old_pos.y
+				x:mouse.pageX-_this.old_pos.x-window.pageXOffset,
+				y:mouse.pageY-_this.old_pos.y-window.pageYOffset
 			};
 			_this.resizer.move(new_pos);
 		}
@@ -549,13 +549,13 @@ doorways_t.prototype.set_minimized=function(minimized,wipe_hide_all)
 //  outline        INT                Window outline width (1).
 //  pos            {x:INT,y:INT}      Starting window position (0,0).
 //  size           {w:INT,h:INT}      Starting window size (320,240).
-function resizer_t(div,window,properties)
+function resizer_t(div,doorway_window,properties)
 {
 	var _this=this;
 	if(!div||!window)
 		return null;
 	this.div=div;
-	this.window=window;
+	this.window=doorway_window;
 	this.opacity=0;  //DEBUGGING HELPER
 	this.border=10;
 
@@ -683,8 +683,8 @@ function resizer_t(div,window,properties)
 			//Get absolute pos of mouse.
 			var abs_pos=
 			{
-				x:mouse.pageX-global_offset.x,
-				y:mouse.pageY-global_offset.y
+				x:mouse.pageX-global_offset.x-window.pageXOffset,
+				y:mouse.pageY-global_offset.y-window.pageYOffset
 			};
 
 			//North resizers.
