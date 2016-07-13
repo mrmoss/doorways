@@ -218,10 +218,10 @@ doorways_manager_t.prototype.load=function(data)
 
 
 //Properties include:
-//  active_color        COLOR              Color of top bar when active (gray).
-//  deactive_color      COLOR              Color of top bar when not active (black).
-//  active_text_color   COLOR              Color of top bar text when active (white).
-//  deactive_text_color COLOR              Color of top bar text when not active (gray).
+//  active_color        COLOR              Color of top bar when active.
+//  deactive_color      COLOR              Color of top bar when not active.
+//  active_text_color   COLOR              Color of top bar text when active.
+//  deactive_text_color COLOR              Color of top bar text when not active.
 //  min_size            {w:INT,h:INT}      Minimum size the doorway can be (200,200).
 //  onresize            function(pos,size) Callback called when window is resized.
 //  outline             INT                Width of outline around doorway (1).
@@ -229,7 +229,7 @@ doorways_manager_t.prototype.load=function(data)
 //  size                {w:INT,h:INT}      Doorway starting size (320,240).
 //  top_bar_height      INT                Height of the top bar (32).
 //  button_size         INT                Size of the help and minimize buttons (20).
-//  button_spacing      INT                Spacing between buttons (5).
+//  button_spacing      INT                Spacing between buttons (2).
 //  border_radius       INT                Roundness of doorways (5).
 function doorways_t(manager,id,properties)
 {
@@ -244,13 +244,13 @@ function doorways_t(manager,id,properties)
 	//First created on top.
 	this.active=true;
 	this.minimized=false;
-	this.active_color="#999999";
-	this.deactive_color="#222222";
+	this.active_color="#337ab7";
+	this.deactive_color="#f5f5f5";
 	this.active_text_color="white";
-	this.deactive_text_color="#999999";
+	this.deactive_text_color="black";
 	this.top_bar_height=32;
 	this.button_size=20;
-	this.button_spacing=5;
+	this.button_spacing=2;
 	this.outline=3;
 	this.border_radius=5;
 
@@ -322,7 +322,7 @@ function doorways_t(manager,id,properties)
 		fontFamily:"Sans-serif",
 		textAlign:"center"
 	});
-	this.minimize.innerHTML="_";
+	this.minimize.innerHTML="x";
 	this.help=utility.make_div(this.top_bar,
 	{
 		lineHeight:this.top_bar_height+"px",
@@ -984,7 +984,7 @@ function doorways_menu_t(manager,properties)
 	this.button_area_width=128;
 	this.handle_width=24;
 	this.border_radius=5;
-	this.outline=2;
+	this.outline=1;
 	this.shown=true;
 
 	//Copy properties...
@@ -1025,9 +1025,10 @@ function doorways_menu_t(manager,properties)
 		top:"0px",
 		left:"0px",
 		height:"100%",
-		width:this.button_area_width+"px",
-		backgroundColor:"#222222"
-		});
+		width:this.button_area_width+this.outline+"px", //Add outline to make middle line look prettier
+		backgroundColor:"#f5f5f5",
+		boxShadow:"inset 0 0 0 "+this.outline+"px black"
+	});
 
 	//Menu icon.
 	this.icon=utility.make_img(this.button_area,"",
@@ -1053,12 +1054,13 @@ function doorways_menu_t(manager,properties)
 		right:"0px",
 		height:"100%",
 		width:this.handle_width+"px",
-		leaveBackgroundColor:"#222222",
-		enterBackgroundColor:"#999999",
-		leaveColor:"#999999",
+		leaveBackgroundColor:"#f5f5f5",
+		enterBackgroundColor:"#337ab7",
+		leaveColor:"black",
 		enterColor:"white",
 		display:"table",
-		borderRadius:"0px "+this.border_radius+"px "+this.border_radius+"px 0px"
+		borderRadius:"0px "+this.border_radius+"px "+this.border_radius+"px 0px",
+		boxShadow:"inset 0 0 0 "+this.outline+"px black"
 	});
 	this.handle_text=utility.make_div(this.handle.el,
 	{
@@ -1184,9 +1186,9 @@ function doorways_menu_button_t(div,doorway,width)
 		mozUserSelect:"none",
 		msUserSelect:"none",
 		fontFamily:"Sans-serif",
-		leaveBackgroundColor:"#222222",
-		enterBackgroundColor:"#999999",
-		leaveColor:"#999999",
+		leaveBackgroundColor:"rgba(0,0,0,0)",
+		enterBackgroundColor:"#337ab7",
+		leaveColor:"black",
 		enterColor:"white",
 		overflow:"hidden",
 		whiteSpace:"nowrap"
