@@ -218,10 +218,8 @@ doorways_manager_t.prototype.load=function(data)
 
 
 //Properties include:
-//  active_color        COLOR              Color of top bar when active.
-//  deactive_color      COLOR              Color of top bar when not active.
-//  active_text_color   COLOR              Color of top bar text when active.
-//  deactive_text_color COLOR              Color of top bar text when not active.
+//  active_style        STYLE              Style of top bar when active.
+//  deactive_style      STYLE              Style of top bar when not active.
 //  min_size            {w:INT,h:INT}      Minimum size the doorway can be (200,200).
 //  onresize            function(pos,size) Callback called when window is resized.
 //  outline             INT                Width of outline around doorway (1).
@@ -244,25 +242,29 @@ function doorways_t(manager,id,properties)
 	//First created on top.
 	this.active=true;
 	this.minimized=false;
-	this.active_color="#337ab7";
-	this.deactive_color="#f5f5f5";
-	this.active_text_color="white";
-	this.deactive_text_color="black";
 	this.top_bar_height=32;
 	this.button_size=20;
 	this.button_spacing=2;
-	this.outline=3;
+	this.outline=1;
 	this.border_radius=5;
+	this.active_style=
+	{
+		backgroundColor:"rgb(50,120,185)",
+		border:"solid "+this.outline+"px rgb(50,120,185)",
+		color:"rgb(255,255,255)"
+	};
+	this.deactive_style=
+	{
+		backgroundColor:"rgb(220,220,220)",
+		border:"solid "+this.outline+"px rgb(220,220,220)",
+		color:"rgb(100,100,100)"
+	};
 
 	//Default properties...
-	if(properties.active_color!=null)
-		this.active_color=properties.active_color;
-	if(properties.deactive_color!=null)
-		this.deactive_color=properties.deactive_color;
-	if(properties.active_text_color!=null)
-		this.active_text_color=properties.active_text_color;
-	if(properties.deactive_text_color!=null)
-		this.deactive_text_color=properties.deactive_text_color;
+	if(properties.active_style!=null)
+		this.active_style=properties.active_style;
+	if(properties.deactive_style!=null)
+		this.deactive_style=properties.deactive_style;
 	if(properties.outline!=null)
 		this.outline=properties.outline;
 	if(properties.top_bar_height!=null)
@@ -294,15 +296,17 @@ function doorways_t(manager,id,properties)
 	this.window=utility.make_div(this.manager.el,
 	{
 		position:"absolute",
-		border:"black solid "+this.outline+"px",
-		borderRadius:this.border_radius+"px",
-		overflow:"hidden"
+		overflow:"hidden",
+		borderRadius:this.border_radius+"px"
 	});
 	this.top_bar=utility.make_div(this.window,
 	{
 		height:this.top_bar_height+"px",
 		cursor:"move",
-		borderBottom:"black solid "+this.outline+"px"
+		webkitUserSelect:"none",
+		mozUserSelect:"none",
+		msUserSelect:"none",
+		fontFamily:"Sans-serif",
 	});
 	this.content=utility.make_div(this.window,
 	{
@@ -316,10 +320,6 @@ function doorways_t(manager,id,properties)
 		cursor:"pointer",
 		float:"right",
 		marginRight:this.button_spacing+"px",
-		webkitUserSelect:"none",
-		mozUserSelect:"none",
-		msUserSelect:"none",
-		fontFamily:"Sans-serif",
 		textAlign:"center"
 	});
 	this.minimize.innerHTML="x";
@@ -331,10 +331,6 @@ function doorways_t(manager,id,properties)
 		cursor:"pointer",
 		float:"right",
 		marginRight:this.button_spacing+"px",
-		webkitUserSelect:"none",
-		mozUserSelect:"none",
-		msUserSelect:"none",
-		fontFamily:"Sans-serif",
 		textAlign:"center"
 	});
 	this.help.innerHTML="?";
@@ -343,15 +339,10 @@ function doorways_t(manager,id,properties)
 		position:"absolute",
 		top:"0px",
 		lineHeight:this.top_bar_height+"px",
-		color:"white",
 		width:"0px",
 		height:this.top_bar_height+"px",
 		cursor:"grab",
 		paddingLeft:this.button_spacing+"px",
-		webkitUserSelect:"none",
-		mozUserSelect:"none",
-		msUserSelect:"none",
-		fontFamily:"Sans-serif",
 		overflow:"hidden",
 		whiteSpace:"nowrap"
 	});
@@ -483,18 +474,14 @@ doorways_t.prototype.update=function()
 	//Set colors and put on top of stack if necessary (set zIndex to "").
 	if(this.active)
 	{
-		this.top_bar.style.backgroundColor=this.active_color;
-		this.minimize.style.color=this.active_text_color;
-		this.help.style.color=this.active_text_color;
-		this.title.style.color=this.active_text_color;
 		this.window.style.zIndex="";
+		utility.set_style(this.window,this.active_style);
+		utility.set_style(this.top_bar,this.active_style);
 	}
 	else
 	{
-		this.top_bar.style.backgroundColor=this.deactive_color;
-		this.minimize.style.color=this.deactive_text_color;
-		this.help.style.color=this.deactive_text_color;
-		this.title.style.color=this.deactive_text_color;
+		utility.set_style(this.window,this.deactive_style);
+		utility.set_style(this.top_bar,this.deactive_style);
 	}
 
 	this.title.style.width=utility.get_num(this.window.offsetWidth)-
@@ -893,26 +880,21 @@ resizer_t.prototype.destroy=function()
 
 //Helper class that makes a highlightable div.
 //  Special CSS:
-//    enterOpacity          Opacity when mouse enters.
-//    leaveOpacity          Opacity when mouse leaves.
-//    enterColor            Color when mouse enters.
-//    leaveColor            Color when mouse leaves.
-//    enterBackgroundColor  Background color when mouse enters.
-//    leaveBackgroundColor  Background color when mouse leaves.
 //  See .addEventListener() for listeners.
-function highlightable_t(div,style)
+function highlightable_t(div,enter_style,leave_style)
 {
 	if(!div)
 		return null;
 	this.div=div;
 	var _this=this;
-	this.style=style;
+	this.enter_style=enter_style;
+	this.leave_style=leave_style;
 	this.event_listeners=
 	{
 		click:[]
 	};
-	this.el=utility.make_div(this.div,style);
-	if(!style.cursor)
+	this.el=utility.make_div(this.div,this.enter_style);
+	if(!enter_style.cursor)
 		this.el.style.cursor="pointer";
 	this.el.addEventListener("mouseenter",function(){_this.highlight();});
 	this.el.addEventListener("mouseleave",function(){_this.unhighlight();});
@@ -935,23 +917,13 @@ highlightable_t.prototype.destroy=function()
 //Highlight function sets colors and opacities to enter(if passed in).
 highlightable_t.prototype.highlight=function()
 {
-	if(this.style.enterOpacity>=0)
-		this.el.style.opacity=this.style.enterOpacity;
-	if(this.style.enterBackgroundColor)
-		this.el.style.backgroundColor=this.style.enterBackgroundColor;
-	if(this.style.enterColor)
-		this.el.style.color=this.style.enterColor;
+	utility.set_style(this.el,this.enter_style);
 }
 
 //Unhighlight function sets colors and opacities to leave (if passed in).
 highlightable_t.prototype.unhighlight=function()
 {
-	if(this.style.leaveOpacity>=0)
-		this.el.style.opacity=this.style.leaveOpacity;
-	if(this.style.leaveBackgroundColor)
-		this.el.style.backgroundColor=this.style.leaveBackgroundColor;
-	if(this.style.leaveColor)
-		this.el.style.color=this.style.leaveColor;
+	utility.set_style(this.el,this.leave_style);
 }
 
 //Event listeners:
@@ -1026,8 +998,8 @@ function doorways_menu_t(manager,properties)
 		left:"0px",
 		height:"100%",
 		width:this.button_area_width+this.outline+"px", //Add outline to make middle line look prettier
-		backgroundColor:"#f5f5f5",
-		boxShadow:"inset 0 0 0 "+this.outline+"px black"
+		backgroundColor:"rgb(220,220,220)",
+		boxShadow:"inset 0 0 0 "+this.outline+"px rgb(220,220,220)"
 	});
 
 	//Menu icon.
@@ -1054,13 +1026,16 @@ function doorways_menu_t(manager,properties)
 		right:"0px",
 		height:"100%",
 		width:this.handle_width+"px",
-		leaveBackgroundColor:"#f5f5f5",
-		enterBackgroundColor:"#337ab7",
-		leaveColor:"black",
-		enterColor:"white",
 		display:"table",
 		borderRadius:"0px "+this.border_radius+"px "+this.border_radius+"px 0px",
-		boxShadow:"inset 0 0 0 "+this.outline+"px black"
+		backgroundColor:"rgb(50,120,185)",
+		color:"rgb(255,255,255)",
+		boxShadow:"inset 0 0 0 "+this.outline+"px rgb(50,120,185)"
+	},
+	{
+		backgroundColor:"rgb(220,220,220)",
+		color:"rgb(100,100,100)",
+		boxShadow:"inset 0 0 0 "+this.outline+"px rgb(220,220,220)"
 	});
 	this.handle_text=utility.make_div(this.handle.el,
 	{
@@ -1186,12 +1161,14 @@ function doorways_menu_button_t(div,doorway,width)
 		mozUserSelect:"none",
 		msUserSelect:"none",
 		fontFamily:"Sans-serif",
-		leaveBackgroundColor:"rgba(0,0,0,0)",
-		enterBackgroundColor:"#337ab7",
-		leaveColor:"black",
-		enterColor:"white",
+		backgroundColor:"rgb(50,120,185)",
+		color:"rgb(255,255,255)",
 		overflow:"hidden",
 		whiteSpace:"nowrap"
+	},
+	{
+		backgroundColor:"rgba(0,0,0,0)",
+		color:"rgb(100,100,100)"
 	});
 	this.button.addEventListener("click",function()
 	{
