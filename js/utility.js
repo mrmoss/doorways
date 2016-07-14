@@ -47,10 +47,10 @@ utility_t.prototype.set_style=function(el,style)
 utility_t.prototype.make_div=function(div,style,className)
 {
 	var el=document.createElement("div");
-	if(className)
-		el.className=className;
 	el.style.width=el.style.height="100%";
 	this.set_style(el,style);
+	if(className)
+		el.className=className;
 	if(div)
 		div.appendChild(el);
 	return el;
